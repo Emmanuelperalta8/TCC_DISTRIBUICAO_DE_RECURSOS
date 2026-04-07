@@ -1,0 +1,11 @@
+# Ambiente
+.env
+__pycache__/
+*.pyc
+
+# Dados brutos (arquivos grandes)
+dados_brutos/
+dados_processados/
+
+# Node
+node_modules/

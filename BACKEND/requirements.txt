@@ -1,0 +1,6 @@
+pandas
+requests
+supabase
+python-dotenv
+openpyxl
+tqdm
