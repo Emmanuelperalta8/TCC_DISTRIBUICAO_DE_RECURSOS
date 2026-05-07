@@ -12,9 +12,9 @@ import sys
 import time
 
 ETAPAS = [
-    ("Coletando Transferências Federais", "coletar_transferencias.py"),
+    ("Coletando Transferências Federais", "coleta/coletar_transferencias.py"),
     ("Coletando População (IBGE)",         "coletar_populacao_ibge.py"),
-    ("ETL → Supabase",                     "etl_supabase.py"),
+    ("ETL → Supabase",                     "ETL/etl_supabase.py"),
 ]
 
 def main():

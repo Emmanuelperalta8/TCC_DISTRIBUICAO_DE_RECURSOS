@@ -31,27 +31,55 @@ os.makedirs(SAIDA_DIR, exist_ok=True)
 # 1. EXTRAÇÃO
 # ──────────────────────────────────────────────
 
+def _supabase_client():
+    from supabase import create_client
+    if not SUPABASE_URL or not SUPABASE_KEY:
+        raise RuntimeError("Configure SUPABASE_URL e SUPABASE_SERVICE_KEY no .env")
+    return create_client(SUPABASE_URL, SUPABASE_KEY)
+
+
+def _fetch_all(client, tabela: str, colunas: str) -> list:
+    """Busca todos os registros do Supabase paginando de 1000 em 1000."""
+    todos = []
+    offset = 0
+    while True:
+        res = client.table(tabela).select(colunas).range(offset, offset + 999).execute()
+        if not res.data:
+            break
+        todos.extend(res.data)
+        if len(res.data) < 1000:
+            break
+        offset += 1000
+    return todos
+
+
 def carregar_transferencias() -> pd.DataFrame:
-    caminho = os.path.join(DATA_DIR, "transferencias_consolidado.csv")
-    if not os.path.exists(caminho):
-        raise FileNotFoundError(
-            f"Arquivo não encontrado: {caminho}\n"
-            "Execute primeiro: python coletar_transferencias.py"
-        )
-    df = pd.read_csv(caminho, encoding="utf-8")
+    print("  Lendo fato_transferencias do Supabase...")
+    client = _supabase_client()
+    registros = _fetch_all(client, "fato_transferencias", "ano,sigla_uf,tipo_transferencia,valor_transferido")
+    if not registros:
+        raise RuntimeError("Tabela fato_transferencias vazia. Execute primeiro: python coleta/coletar_transferencias.py")
+    df = pd.DataFrame(registros)
+    df["valor_transferido"] = pd.to_numeric(df["valor_transferido"], errors="coerce").fillna(0)
     print(f"  ✓ Transferências: {len(df):,} registros")
     return df
 
 
 def carregar_populacao() -> pd.DataFrame:
+    # Tenta CSV local primeiro (mais rápido), senão lê do Supabase
     caminho = os.path.join(DATA_DIR, "populacao_estados.csv")
-    if not os.path.exists(caminho):
-        raise FileNotFoundError(
-            f"Arquivo não encontrado: {caminho}\n"
-            "Execute primeiro: python coletar_populacao_ibge.py"
-        )
-    df = pd.read_csv(caminho, encoding="utf-8")
-    print(f"  ✓ População: {len(df):,} registros")
+    if os.path.exists(caminho):
+        df = pd.read_csv(caminho, encoding="utf-8")
+        print(f"  ✓ População: {len(df):,} registros (CSV local)")
+        return df
+
+    print("  Lendo dim_populacao do Supabase...")
+    client = _supabase_client()
+    registros = _fetch_all(client, "dim_populacao", "sigla_uf,ano,populacao")
+    if not registros:
+        raise RuntimeError("Sem dados de população. Execute primeiro: python coletar_populacao_ibge.py")
+    df = pd.DataFrame(registros)
+    print(f"  ✓ População: {len(df):,} registros (Supabase)")
     return df
 
 
@@ -272,7 +300,7 @@ def salvar_csvs(dim_estado, dim_tempo, dim_tipo, fato, agregacoes):
         print(f"  ✓ Salvo: {caminho} ({len(df):,} linhas)")
 
 
-def carregar_supabase(tabela: str, df: pd.DataFrame):
+def carregar_supabase(tabela: str, df: pd.DataFrame, on_conflict: str = None):
     """
     Carrega um DataFrame no Supabase via API REST.
     Usa upsert para não duplicar dados em re-execuções.
@@ -285,15 +313,16 @@ def carregar_supabase(tabela: str, df: pd.DataFrame):
         from supabase import create_client
         client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-        # Converter para lista de dicts e tratar NaN
         registros = df.where(pd.notna(df), None).to_dict(orient="records")
 
-        # Inserir em lotes de 500 para respeitar limites da API
         BATCH = 500
         total = 0
         for i in range(0, len(registros), BATCH):
             lote = registros[i:i+BATCH]
-            client.table(tabela).upsert(lote).execute()
+            req = client.table(tabela).upsert(lote)
+            if on_conflict:
+                req = client.table(tabela).upsert(lote, on_conflict=on_conflict)
+            req.execute()
             total += len(lote)
             print(f"\r  [{tabela}] {total}/{len(registros)} registros inseridos...", end="")
 
@@ -476,12 +505,28 @@ def main():
     # Carregar no Supabase (se configurado)
     if SUPABASE_URL and SUPABASE_KEY:
         print("\n  Carregando no Supabase...")
-        carregar_supabase("dim_estado", dim_estado)
+
+        # dim_estado já existe com capital/id_ibge — pular para não conflitar
+        print("  ℹ  dim_estado: já existe no Supabase, pulando.")
+
         carregar_supabase("dim_tempo", dim_tempo)
         carregar_supabase("dim_tipo_transferencia", dim_tipo)
-        carregar_supabase("fato_transferencias", fato)
+
+        # fato_transferencias: atualizar apenas populacao e valor_per_capita
+        fato_slim = fato[["sigla_uf", "ano", "tipo_transferencia",
+                           "populacao", "valor_per_capita"]].copy()
+        carregar_supabase("fato_transferencias", fato_slim,
+                          on_conflict="ano,sigla_uf,tipo_transferencia")
+
+        on_conflict_agg = {
+            "agg_por_estado_ano":  "ano,sigla_uf",
+            "agg_por_regiao_ano":  "ano,regiao",
+            "agg_por_tipo_ano":    "ano,tipo_transferencia",
+            "agg_ranking_estados": "ano,sigla_uf",
+        }
         for nome, df in agregacoes.items():
-            carregar_supabase(f"agg_{nome}", df)
+            tabela = f"agg_{nome}"
+            carregar_supabase(tabela, df, on_conflict=on_conflict_agg.get(tabela))
     else:
         print("\n  ℹ  Configure SUPABASE_URL e SUPABASE_SERVICE_KEY no .env para carregar no banco.")
 
