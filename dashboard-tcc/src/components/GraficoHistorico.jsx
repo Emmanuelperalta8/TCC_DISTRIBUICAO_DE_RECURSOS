@@ -84,13 +84,13 @@ export default function GraficoHistorico({ historicoTransf, estadoSel = "Todos" 
           />
           <XAxis
             dataKey="ano"
-            tick={{ fill: "#64748B", fontSize: 11, fontFamily: "Inter" }}
+            tick={{ fill: "#64748B", fontSize: 11, fontFamily: "Nunito" }}
             axisLine={false}
             tickLine={false}
           />
           <YAxis
             tickFormatter={fmtBRL}
-            tick={{ fill: "#64748B", fontSize: 10, fontFamily: "Inter" }}
+            tick={{ fill: "#64748B", fontSize: 10, fontFamily: "Nunito" }}
             axisLine={false}
             tickLine={false}
             width={72}

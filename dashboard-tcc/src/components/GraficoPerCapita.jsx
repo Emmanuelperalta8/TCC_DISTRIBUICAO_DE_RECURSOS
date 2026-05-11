@@ -95,13 +95,13 @@ export default function GraficoPerCapita({ dadosCompletos, anoSel, estadoSel }) 
           />
           <XAxis
             dataKey="sigla_uf"
-            tick={{ fill: "#64748B", fontSize: 10, fontFamily: "Inter" }}
+            tick={{ fill: "#64748B", fontSize: 10, fontFamily: "Nunito" }}
             axisLine={false}
             tickLine={false}
           />
           <YAxis
             tickFormatter={fmtEixo}
-            tick={{ fill: "#64748B", fontSize: 10, fontFamily: "Inter" }}
+            tick={{ fill: "#64748B", fontSize: 10, fontFamily: "Nunito" }}
             axisLine={false}
             tickLine={false}
             width={68}

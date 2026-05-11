@@ -85,7 +85,7 @@ export default function GraficoTipos({ tiposTransf, anoSel }) {
           <XAxis
             type="number"
             tickFormatter={fmtBRL}
-            tick={{ fill: "#64748B", fontSize: 10, fontFamily: "Inter" }}
+            tick={{ fill: "#64748B", fontSize: 10, fontFamily: "Nunito" }}
             axisLine={false}
             tickLine={false}
           />
@@ -93,7 +93,7 @@ export default function GraficoTipos({ tiposTransf, anoSel }) {
             type="category"
             dataKey="name"
             width={yWidth}
-            tick={{ fill: "#94A3B8", fontSize: 10, fontFamily: "Inter" }}
+            tick={{ fill: "#94A3B8", fontSize: 10, fontFamily: "Nunito" }}
             axisLine={false}
             tickLine={false}
             tickFormatter={(v) => truncar(v)}
@@ -109,7 +109,7 @@ export default function GraficoTipos({ tiposTransf, anoSel }) {
               formatter={(v) =>
                 `${v.toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 1 })}%`
               }
-              style={{ fill: "#64748B", fontSize: 10, fontFamily: "Inter" }}
+              style={{ fill: "#64748B", fontSize: 10, fontFamily: "Nunito" }}
             />
           </Bar>
         </BarChart>

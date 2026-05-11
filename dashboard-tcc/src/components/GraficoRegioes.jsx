@@ -81,7 +81,7 @@ export default function GraficoRegioes({ regioes, anoSel }) {
             type="category"
             dataKey="regiao"
             width={92}
-            tick={{ fill: "#94A3B8", fontSize: 12, fontFamily: "Inter" }}
+            tick={{ fill: "#94A3B8", fontSize: 12, fontFamily: "Nunito" }}
             axisLine={false}
             tickLine={false}
           />
@@ -100,7 +100,7 @@ export default function GraficoRegioes({ regioes, anoSel }) {
               dataKey="pct"
               position="right"
               formatter={(v) => `${v.toFixed(0)}%`}
-              style={{ fill: "#94A3B8", fontSize: 11, fontFamily: "Inter" }}
+              style={{ fill: "#94A3B8", fontSize: 11, fontFamily: "Nunito" }}
             />
           </Bar>
         </BarChart>
