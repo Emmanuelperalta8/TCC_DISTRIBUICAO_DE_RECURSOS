@@ -34,7 +34,7 @@ const TooltipCustom = ({ active, payload }) => {
 const truncar = (str, max = 30) =>
   str.length > max ? str.slice(0, max - 1) + "…" : str;
 
-export default function GraficoTipos({ tiposTransf, anoSel }) {
+export default function GraficoTipos({ tiposTransf, anoSel, height = 280, limit = 10 }) {
   if (!tiposTransf?.length) {
     return (
       <div className="card">
@@ -56,7 +56,7 @@ export default function GraficoTipos({ tiposTransf, anoSel }) {
       percent: (Number(d.valor_total) / total) * 100,
     }))
     .sort((a, b) => b.value - a.value)
-    .slice(0, 10);
+    .slice(0, limit);
 
   const maxLabelLen = Math.max(...dados.map((d) => Math.min(d.name.length, 30)));
   const yWidth = Math.min(Math.max(maxLabelLen * 6, 110), 200);
@@ -70,7 +70,7 @@ export default function GraficoTipos({ tiposTransf, anoSel }) {
         </div>
       </div>
 
-      <ResponsiveContainer width="100%" height={280}>
+      <ResponsiveContainer width="100%" height={height}>
         <BarChart
           data={dados}
           layout="vertical"
@@ -79,13 +79,13 @@ export default function GraficoTipos({ tiposTransf, anoSel }) {
         >
           <CartesianGrid
             strokeDasharray="3 3"
-            stroke="#1F2937"
+            stroke="#E8EEF5"
             horizontal={false}
           />
           <XAxis
             type="number"
             tickFormatter={fmtBRL}
-            tick={{ fill: "#64748B", fontSize: 10, fontFamily: "Nunito" }}
+            tick={{ fill: "#7090AA", fontSize: 10, fontFamily: "Nunito" }}
             axisLine={false}
             tickLine={false}
           />
@@ -93,23 +93,23 @@ export default function GraficoTipos({ tiposTransf, anoSel }) {
             type="category"
             dataKey="name"
             width={yWidth}
-            tick={{ fill: "#94A3B8", fontSize: 10, fontFamily: "Nunito" }}
+            tick={{ fill: "#7090AA", fontSize: 10, fontFamily: "Nunito" }}
             axisLine={false}
             tickLine={false}
             tickFormatter={(v) => truncar(v)}
           />
           <Tooltip
             content={<TooltipCustom />}
-            cursor={{ fill: "rgba(255,255,255,0.03)" }}
+            cursor={{ fill: "rgba(19,81,180,0.04)" }}
           />
-          <Bar dataKey="value" fill="#3B82F6" radius={[0, 4, 4, 0]} maxBarSize={20}>
+          <Bar dataKey="value" fill="#1351B4" radius={[0, 4, 4, 0]} maxBarSize={20}>
             <LabelList
               dataKey="percent"
               position="right"
               formatter={(v) =>
                 `${v.toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 1 })}%`
               }
-              style={{ fill: "#64748B", fontSize: 10, fontFamily: "Nunito" }}
+              style={{ fill: "#7090AA", fontSize: 10, fontFamily: "Nunito" }}
             />
           </Bar>
         </BarChart>

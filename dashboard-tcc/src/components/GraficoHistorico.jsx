@@ -28,7 +28,7 @@ const TooltipCustom = ({ active, payload, label }) => {
   );
 };
 
-export default function GraficoHistorico({ historicoTransf, estadoSel = "Todos" }) {
+export default function GraficoHistorico({ historicoTransf, estadoSel = "Todos", height = 230 }) {
   if (!historicoTransf?.length) {
     return (
       <div className="card">
@@ -60,7 +60,7 @@ export default function GraficoHistorico({ historicoTransf, estadoSel = "Todos" 
             <span
               style={{
                 marginLeft: 10,
-                color: variacao >= 0 ? "#22C55E" : "#EF4444",
+                color: variacao >= 0 ? "#166534" : "#991B1B",
                 fontWeight: 600,
               }}
             >
@@ -72,45 +72,45 @@ export default function GraficoHistorico({ historicoTransf, estadoSel = "Todos" 
         </div>
       </div>
 
-      <ResponsiveContainer width="100%" height={230}>
+      <ResponsiveContainer width="100%" height={height}>
         <LineChart
           data={historicoTransf}
           margin={{ top: 8, right: 12, left: 8, bottom: 4 }}
         >
           <CartesianGrid
             strokeDasharray="3 3"
-            stroke="#1F2937"
+            stroke="#E8EEF5"
             vertical={false}
           />
           <XAxis
             dataKey="ano"
-            tick={{ fill: "#64748B", fontSize: 11, fontFamily: "Nunito" }}
+            tick={{ fill: "#7090AA", fontSize: 11, fontFamily: "Nunito" }}
             axisLine={false}
             tickLine={false}
           />
           <YAxis
             tickFormatter={fmtBRL}
-            tick={{ fill: "#64748B", fontSize: 10, fontFamily: "Nunito" }}
+            tick={{ fill: "#7090AA", fontSize: 10, fontFamily: "Nunito" }}
             axisLine={false}
             tickLine={false}
             width={72}
           />
-          <Tooltip content={<TooltipCustom />} cursor={{ stroke: "#1F2937", strokeWidth: 1 }} />
+          <Tooltip content={<TooltipCustom />} cursor={{ stroke: "#E8EEF5", strokeWidth: 1 }} />
           <Line
             type="monotone"
             dataKey="total"
-            stroke="#3B82F6"
+            stroke="#1351B4"
             strokeWidth={2}
             dot={false}
-            activeDot={{ r: 4, fill: "#3B82F6", strokeWidth: 0 }}
+            activeDot={{ r: 4, fill: "#1351B4", strokeWidth: 0 }}
           />
           {ultimo && (
             <ReferenceDot
               x={ultimo.ano}
               y={ultimo.total}
               r={4}
-              fill="#3B82F6"
-              stroke="#111827"
+              fill="#1351B4"
+              stroke="#FFFFFF"
               strokeWidth={2}
             />
           )}

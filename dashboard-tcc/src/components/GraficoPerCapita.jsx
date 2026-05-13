@@ -11,11 +11,11 @@ import {
 } from "recharts";
 
 const CORES = {
-  Norte:          "#38BDF8",
-  Nordeste:       "#FBBF24",
-  Sudeste:        "#818CF8",
-  Sul:            "#A78BFA",
-  "Centro-Oeste": "#FB923C",
+  Norte:          "#0077B6",
+  Nordeste:       "#C96A00",
+  Sudeste:        "#4338CA",
+  Sul:            "#7C3AED",
+  "Centro-Oeste": "#C2410C",
 };
 
 const fmtEixo = (v) => {
@@ -27,9 +27,15 @@ const fmtEixo = (v) => {
 const fmtPerCapita = (v) =>
   `R$ ${Number(v).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-const TooltipCustom = ({ active, payload }) => {
+const fmtPop = (v) =>
+  v >= 1e6
+    ? `${(v / 1e6).toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} mi hab.`
+    : `${Number(v).toLocaleString("pt-BR")} hab.`;
+
+const TooltipCustom = ({ active, payload, media }) => {
   if (!active || !payload?.length) return null;
   const d = payload[0].payload;
+  const desvio = media > 0 ? ((d.valor_per_capita - media) / media) * 100 : null;
   return (
     <div className="tt">
       <div className="tt-label">
@@ -39,19 +45,32 @@ const TooltipCustom = ({ active, payload }) => {
       <div className="tt-detail" style={{ color: CORES[d.regiao] }}>
         {d.regiao}
       </div>
+      {d.populacao > 0 && (
+        <div className="tt-detail">{fmtPop(d.populacao)}</div>
+      )}
+      {desvio !== null && (
+        <div
+          className="tt-detail"
+          style={{ color: desvio >= 0 ? "#166534" : "#991B1B", marginTop: 4 }}
+        >
+          {desvio >= 0 ? "▲" : "▼"}{" "}
+          {Math.abs(desvio).toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%{" "}
+          {desvio >= 0 ? "acima" : "abaixo"} da média
+        </div>
+      )}
     </div>
   );
 };
 
-export default function GraficoPerCapita({ dadosCompletos, anoSel, estadoSel }) {
+export default function GraficoPerCapita({ dadosCompletos, anoSel, estadoSel, height = 280 }) {
   const dados = [...dadosCompletos]
     .filter((d) => d.valor_per_capita > 0)
     .sort((a, b) => b.valor_per_capita - a.valor_per_capita);
 
-  const media =
-    dados.length
-      ? dados.reduce((s, d) => s + d.valor_per_capita, 0) / dados.length
-      : 0;
+  // Média ponderada pela população — correto para distribuição per capita
+  const totalTransf = dados.reduce((s, d) => s + Number(d.valor_total || 0), 0);
+  const popTotal    = dados.reduce((s, d) => s + Number(d.populacao || 0), 0);
+  const media       = popTotal > 0 ? totalTransf / popTotal : 0;
 
   if (!dados.length) {
     return (
@@ -71,7 +90,7 @@ export default function GraficoPerCapita({ dadosCompletos, anoSel, estadoSel }) 
         <div className="card-title">
           Valor per capita por estado
           {estadoSel !== "Todos" && (
-            <span style={{ color: "#3B82F6", fontWeight: 400, marginLeft: 8 }}>
+            <span style={{ color: "#1351B4", fontWeight: 400, marginLeft: 8 }}>
               · {estadoSel}
             </span>
           )}
@@ -82,7 +101,7 @@ export default function GraficoPerCapita({ dadosCompletos, anoSel, estadoSel }) 
         </div>
       </div>
 
-      <ResponsiveContainer width="100%" height={280}>
+      <ResponsiveContainer width="100%" height={height}>
         <BarChart
           data={dados}
           margin={{ top: 8, right: 12, left: 8, bottom: 4 }}
@@ -90,25 +109,25 @@ export default function GraficoPerCapita({ dadosCompletos, anoSel, estadoSel }) 
         >
           <CartesianGrid
             strokeDasharray="3 3"
-            stroke="#1F2937"
+            stroke="#E8EEF5"
             vertical={false}
           />
           <XAxis
             dataKey="sigla_uf"
-            tick={{ fill: "#64748B", fontSize: 10, fontFamily: "Nunito" }}
+            tick={{ fill: "#7090AA", fontSize: 10, fontFamily: "Nunito" }}
             axisLine={false}
             tickLine={false}
           />
           <YAxis
             tickFormatter={fmtEixo}
-            tick={{ fill: "#64748B", fontSize: 10, fontFamily: "Nunito" }}
+            tick={{ fill: "#7090AA", fontSize: 10, fontFamily: "Nunito" }}
             axisLine={false}
             tickLine={false}
             width={68}
           />
           <Tooltip
-            content={<TooltipCustom />}
-            cursor={{ fill: "rgba(255,255,255,0.03)" }}
+            content={<TooltipCustom media={media} />}
+            cursor={{ fill: "rgba(19,81,180,0.04)" }}
           />
           <ReferenceLine
             y={media}
@@ -120,7 +139,7 @@ export default function GraficoPerCapita({ dadosCompletos, anoSel, estadoSel }) 
             {dados.map((entry) => (
               <Cell
                 key={entry.sigla_uf}
-                fill={CORES[entry.regiao] || "#3B82F6"}
+                fill={CORES[entry.regiao] || "#1351B4"}
                 fillOpacity={
                   estadoSel === "Todos" || entry.sigla_uf === estadoSel
                     ? 1

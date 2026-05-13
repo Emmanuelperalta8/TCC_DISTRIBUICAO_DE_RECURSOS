@@ -14,6 +14,21 @@ const fmtPop = (v) =>
 const fmtPerCapita = (v) =>
   `R$ ${Number(v).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
+function DesvioMedia({ valor, media }) {
+  if (!media || !valor) return null;
+  const pct = ((valor - media) / media) * 100;
+  const acima = pct >= 0;
+  return (
+    <div className="kpi-desvio">
+      <span className={`kpi-desvio-badge ${acima ? "acima" : "abaixo"}`}>
+        {acima ? "▲" : "▼"} {Math.abs(pct).toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%{" "}
+        {acima ? "acima" : "abaixo"} da média
+      </span>
+      <span className="kpi-desvio-ref">Média: {fmtPerCapita(media)}</span>
+    </div>
+  );
+}
+
 export default function KPIs({ dadosCompletos, anoSel, estadoSel }) {
   const popTotal    = dadosCompletos.reduce((s, r) => s + Number(r.populacao || 0), 0);
   const totalTransf = dadosCompletos.reduce((s, r) => s + Number(r.valor_total || 0), 0);
@@ -27,38 +42,57 @@ export default function KPIs({ dadosCompletos, anoSel, estadoSel }) {
 
   return (
     <div className="kpis">
-      <div className="kpi" style={{ "--kpi-color": "#3B82F6" }}>
+      <div className="kpi" style={{ "--kpi-color": "#1351B4" }}>
         <div className="kpi-label">Total transferido</div>
         <div className="kpi-value">{fmtBRL(totalTransf)}</div>
         <div className="kpi-sub">{escopo} · {anoSel} · {fmtPop(popTotal)}</div>
       </div>
 
-      <div className="kpi" style={{ "--kpi-color": "#22C55E" }}>
+      <div className="kpi" style={{ "--kpi-color": "#16A34A" }}>
         <div className="kpi-label">Média per capita</div>
         <div className="kpi-value">{fmtPerCapita(perCapita)}</div>
         <div className="kpi-sub">por habitante · {escopo} · {anoSel}</div>
+        <div className="kpi-sub" style={{ marginTop: 4 }}>
+          Base: {fmtPop(popTotal)}
+        </div>
       </div>
 
-      <div className="kpi" style={{ "--kpi-color": "#F59E0B" }}>
+      <div className="kpi" style={{ "--kpi-color": "#D97706" }}>
         <div className="kpi-label">Maior per capita</div>
-        <div className="kpi-value" style={{ fontSize: 26 }}>
-          {maior?.sigla_uf || "—"}
+        <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+          <div className="kpi-value" style={{ fontSize: 26 }}>
+            {maior?.sigla_uf || "—"}
+          </div>
+          {maior && (
+            <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>
+              {fmtPerCapita(maior.valor_per_capita)}
+            </div>
+          )}
         </div>
         <div className="kpi-sub">
-          {maior ? fmtPerCapita(maior.valor_per_capita) : ""}
-          {maior ? ` · ${maior.regiao}` : ""}
+          {maior?.regiao || ""}
+          {maior?.populacao > 0 ? ` · ${fmtPop(maior.populacao)}` : ""}
         </div>
+        <DesvioMedia valor={maior?.valor_per_capita} media={perCapita} />
       </div>
 
-      <div className="kpi" style={{ "--kpi-color": "#EF4444" }}>
+      <div className="kpi" style={{ "--kpi-color": "#DC2626" }}>
         <div className="kpi-label">Menor per capita</div>
-        <div className="kpi-value" style={{ fontSize: 26 }}>
-          {menor?.sigla_uf || "—"}
+        <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+          <div className="kpi-value" style={{ fontSize: 26 }}>
+            {menor?.sigla_uf || "—"}
+          </div>
+          {menor && (
+            <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>
+              {fmtPerCapita(menor.valor_per_capita)}
+            </div>
+          )}
         </div>
         <div className="kpi-sub">
-          {menor ? fmtPerCapita(menor.valor_per_capita) : ""}
-          {menor ? ` · ${menor.regiao}` : ""}
+          {menor?.regiao || ""}
+          {menor?.populacao > 0 ? ` · ${fmtPop(menor.populacao)}` : ""}
         </div>
+        <DesvioMedia valor={menor?.valor_per_capita} media={perCapita} />
       </div>
     </div>
   );
