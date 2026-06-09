@@ -12,13 +12,22 @@ Fontes:
   - Estimativas 2023+: tabela 6579, variável 9324
 """
 
-import requests
-import pandas as pd
+import logging
 import os
 import time
+
+import pandas as pd
+import requests
 from dotenv import load_dotenv
 
 load_dotenv()
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    datefmt="%H:%M:%S",
+)
+log = logging.getLogger(__name__)
 
 SUPABASE_URL = os.getenv("SUPABASE_URL", "")
 SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_KEY", "")
@@ -41,6 +50,7 @@ REGIOES_SIGLA = {
     "S": "Sul",   "CO": "Centro-Oeste"
 }
 
+
 def parsear_series(dados: list, fonte: str) -> list:
     """Extrai registros de nome/ano/populacao da resposta SIDRA."""
     registros = []
@@ -56,9 +66,11 @@ def parsear_series(dados: list, fonte: str) -> list:
                             "populacao":   int(pop_str),
                             "fonte":       fonte,
                         })
-                    except:
+                    except (ValueError, TypeError) as exc:
+                        log.debug("Registro ignorado (%s/%s): %s", nome, ano_str, exc)
                         continue
     return registros
+
 
 def coletar_sidra(tabela: int, variavel: int, periodos: str, fonte: str) -> list:
     url = (
@@ -69,15 +81,16 @@ def coletar_sidra(tabela: int, variavel: int, periodos: str, fonte: str) -> list
         r = requests.get(url, timeout=30)
         r.raise_for_status()
         return parsear_series(r.json(), fonte)
-    except Exception as e:
-        print(f"  ✗ Erro {tabela}/{periodos}: {e}")
+    except requests.RequestException as e:
+        log.error("Falha ao consultar SIDRA tabela=%d periodos=%s: %s", tabela, periodos, e)
         return []
+
 
 # ─────────────────────────────────────────────
 # COLETAR ESTADOS
 # ─────────────────────────────────────────────
 def coletar_estados() -> pd.DataFrame:
-    print("\n[1/3] Coletando estados via API IBGE Localidades...")
+    log.info("[1/3] Coletando estados via API IBGE Localidades...")
     r = requests.get(f"{IBGE_BASE}/v1/localidades/estados", timeout=20)
     r.raise_for_status()
     registros = []
@@ -90,39 +103,35 @@ def coletar_estados() -> pd.DataFrame:
             "id_ibge":     e["id"],
         })
     df = pd.DataFrame(registros).sort_values("sigla_uf").reset_index(drop=True)
-    print(f"  ✓ {len(df)} estados coletados")
+    log.info("  %d estados coletados", len(df))
     return df
+
 
 # ─────────────────────────────────────────────
 # COLETAR POPULAÇÃO COMPLETA
 # ─────────────────────────────────────────────
 def coletar_populacao(df_estados: pd.DataFrame) -> pd.DataFrame:
-    print("\n[2/3] Coletando população por estado e ano...")
+    log.info("[2/3] Coletando população por estado e ano...")
 
     mapa = df_estados.set_index("nome_estado")["sigla_uf"].to_dict()
     registros = []
 
-    # Censo 2010
-    print("  → Censo 2010...")
+    log.info("  → Censo 2010...")
     registros += coletar_sidra(1552, 93, "2010", "IBGE Censo 2010")
 
-    # Estimativas 2011-2021
-    print("  → Estimativas 2011–2021...")
+    log.info("  → Estimativas 2011–2021...")
     periodos = "|".join(str(a) for a in range(2011, 2022))
     registros += coletar_sidra(6579, 9324, periodos, "IBGE Estimativa")
     time.sleep(0.5)
 
-    # Censo 2022
-    print("  → Censo 2022...")
+    log.info("  → Censo 2022...")
     registros += coletar_sidra(9514, 93, "2022", "IBGE Censo 2022")
     time.sleep(0.5)
 
-    # Estimativas 2023-2025
-    print("  → Estimativas 2023–2025...")
+    log.info("  → Estimativas 2023–2025...")
     periodos = "|".join(str(a) for a in range(2023, 2026))
     registros += coletar_sidra(6579, 9324, periodos, "IBGE Estimativa")
 
-    # Montar DataFrame
     df = pd.DataFrame(registros)
     df["sigla_uf"] = df["nome_estado"].map(mapa)
     df = df.dropna(subset=["sigla_uf"])
@@ -130,15 +139,19 @@ def coletar_populacao(df_estados: pd.DataFrame) -> pd.DataFrame:
     df = df.drop_duplicates(subset=["sigla_uf", "ano"], keep="last")
     df = df.sort_values(["sigla_uf", "ano"]).reset_index(drop=True)
 
-    print(f"  ✓ {len(df)} registros | Anos: {df['ano'].min()}–{df['ano'].max()} | Estados: {df['sigla_uf'].nunique()}")
+    log.info(
+        "  %d registros | Anos: %d–%d | Estados: %d",
+        len(df), df["ano"].min(), df["ano"].max(), df["sigla_uf"].nunique(),
+    )
     return df
+
 
 # ─────────────────────────────────────────────
 # CARREGAR NO SUPABASE
 # ─────────────────────────────────────────────
 def carregar_supabase(tabela: str, df: pd.DataFrame):
     if not SUPABASE_URL or not SUPABASE_KEY:
-        print(f"  ⚠ Supabase não configurado.")
+        log.warning("Supabase não configurado — carga de '%s' ignorada.", tabela)
         return
     try:
         from supabase import create_client
@@ -149,19 +162,20 @@ def carregar_supabase(tabela: str, df: pd.DataFrame):
         for i in range(0, len(registros), BATCH):
             client.table(tabela).upsert(registros[i:i+BATCH]).execute()
             total += len(registros[i:i+BATCH])
-            print(f"\r  [{tabela}] {total}/{len(registros)}...", end="")
-        print(f"\r  ✓ {tabela}: {total:,} registros carregados          ")
+            log.debug("  [%s] %d/%d...", tabela, total, len(registros))
+        log.info("  %s: %d registros carregados", tabela, total)
     except Exception as e:
-        print(f"\n  ✗ Erro: {e}")
+        log.error("Erro ao carregar '%s': %s", tabela, e)
+
 
 # ─────────────────────────────────────────────
 # MAIN
 # ─────────────────────────────────────────────
 def main():
-    print("=" * 60)
-    print("  COLETA IBGE - ESTADOS E POPULAÇÃO")
-    print("  TCC - Emmanuel Peralta - ULBRA Palmas")
-    print("=" * 60)
+    log.info("=" * 60)
+    log.info("  COLETA IBGE - ESTADOS E POPULAÇÃO")
+    log.info("  TCC - Emmanuel Peralta - ULBRA Palmas")
+    log.info("=" * 60)
 
     df_estados = coletar_estados()
     df_pop     = coletar_populacao(df_estados)
@@ -169,17 +183,16 @@ def main():
     os.makedirs("dados_brutos", exist_ok=True)
     df_estados.to_csv("dados_brutos/estados.csv",    index=False, encoding="utf-8")
     df_pop.to_csv(    "dados_brutos/populacao.csv",  index=False, encoding="utf-8")
-    print("\n  ✓ CSVs salvos em dados_brutos/")
+    log.info("CSVs salvos em dados_brutos/")
 
-    print("\n[3/3] Carregando no Supabase...")
+    log.info("[3/3] Carregando no Supabase...")
     carregar_supabase("dim_estado",    df_estados)
     carregar_supabase("dim_populacao", df_pop)
 
-    print(f"\n{'='*60}")
-    print("✓ Concluído!")
-    print(f"  dim_estado:    {len(df_estados)} estados")
-    print(f"  dim_populacao: {len(df_pop)} registros (2010–2025)")
-    print("=" * 60)
+    log.info("=" * 60)
+    log.info("Concluído! dim_estado: %d | dim_populacao: %d", len(df_estados), len(df_pop))
+    log.info("=" * 60)
+
 
 if __name__ == "__main__":
     main()

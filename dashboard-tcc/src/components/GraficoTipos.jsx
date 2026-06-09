@@ -9,6 +9,32 @@ import {
   LabelList,
 } from "recharts";
 
+const CONCEITOS = {
+  "FPE":                   "Fundo de Participação dos Estados — repasse constitucional de 21,5% da arrecadação federal de IR e IPI destinado aos 26 estados e ao DF.",
+  "FPM":                   "Fundo de Participação dos Municípios — repasse constitucional de 22,5% do IR e IPI aos municípios brasileiros.",
+  "IPI-EXP":               "IPI Exportação — compensação constitucional pela desoneração do IPI nas exportações, distribuída proporcionalmente às exportações estaduais.",
+  "IPI-Exp":               "IPI Exportação — compensação constitucional pela desoneração do IPI nas exportações, distribuída proporcionalmente às exportações estaduais.",
+  "ICMS":                  "LC 87/96 (Lei Kandir) — compensação federal aos estados pela perda de arrecadação de ICMS decorrente da desoneração de exportações de produtos primários.",
+  "ITR":                   "Imposto Territorial Rural — 50% do ITR arrecadado é repassado ao município onde o imóvel rural está localizado.",
+  "CIDE/Combustível":      "CIDE-Combustíveis — Contribuição de Intervenção no Domínio Econômico sobre a importação e comercialização de combustíveis. Parte é rateada entre estados e municípios.",
+  "CIDE-Combustíveis":     "CIDE-Combustíveis — Contribuição de Intervenção no Domínio Econômico sobre a importação e comercialização de combustíveis. Parte é rateada entre estados e municípios.",
+  "FEP":                   "Fundo Especial do Petróleo — parte dos royalties do petróleo distribuída a estados e municípios não produtores.",
+  "CFH":                   "Compensação Financeira pelo uso de Recursos Hídricos — paga pelas usinas hidrelétricas pela utilização de potencial de energia hidráulica, repassada a estados e municípios.",
+  "CFEM":                  "Compensação Financeira pela Exploração de Recursos Minerais — paga pelas empresas de mineração, distribuída à União, estados e municípios.",
+  "IPVA":                  "IPVA (parcela FUNDEB) — contribuição dos estados ao FUNDEB com base na arrecadação do Imposto sobre Propriedade de Veículos Automotores.",
+  "ITCMD":                 "ITCMD (parcela FUNDEB) — contribuição dos estados ao FUNDEB com base na arrecadação do Imposto sobre Transmissão Causa Mortis e Doação.",
+  "LC 87/96 (Lei Kandir)": "Lei Kandir — compensação federal pela desoneração de ICMS nas exportações de produtos primários e semielaborados.",
+  "LC 173/2020 (PFEC)":    "LC 173/2020 — auxílio financeiro emergencial da União a estados e municípios durante a pandemia de COVID-19 (Programa Federativo de Enfrentamento ao Coronavírus).",
+  "LC 176/2020 (ADO25)":   "LC 176/2020 — compensação da União pelo adiamento de precatórios reconhecidos no âmbito da ADO 25 do STF.",
+  "LC 201/2023 – COMPENSAÇÃO ICMS": "LC 201/2023 — compensação federal pela perda de arrecadação dos estados decorrente da desoneração do ICMS sobre combustíveis.",
+  "Royalties":             "Royalties — compensações financeiras pagas pelas empresas pela exploração de recursos naturais (petróleo, gás, recursos hídricos e minerais).",
+  "FPM 1%":                "FPM 1% adicional — parcela extra de 1% do FPM repassada em julho e dezembro de cada ano, conforme EC 55/2007.",
+  "AFM/AFE":               "Auxílio Financeiro aos Municípios/Estados — transferência federal discricionária para apoio em situações específicas.",
+  "IOF-Ouro":              "IOF sobre Ouro — 70% do IOF incidente sobre operações com ouro como ativo financeiro é repassado aos municípios de origem da extração.",
+  "FEX":                   "Fundo de Exportação — compensação pela perda de arrecadação de ICMS nas exportações, complementar à Lei Kandir.",
+  "AJUSTE FUNDEB":         "Ajuste FUNDEB — correção de diferenças nas contribuições ao Fundo de Manutenção e Desenvolvimento da Educação Básica.",
+};
+
 const fmtBRL = (v) => {
   if (v >= 1e9)
     return `R$ ${(v / 1e9).toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} bi`;
@@ -17,16 +43,23 @@ const fmtBRL = (v) => {
   return `R$ ${Number(v).toLocaleString("pt-BR")}`;
 };
 
+const fmtBRLCompleto = (v) =>
+  `R$ ${Number(v).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
 const TooltipCustom = ({ active, payload }) => {
   if (!active || !payload?.length) return null;
   const d = payload[0].payload;
+  const conceito = CONCEITOS[d.name] ?? null;
   return (
-    <div className="tt">
-      <div className="tt-label" style={{ maxWidth: 220 }}>{d.name}</div>
-      <div className="tt-value">{fmtBRL(d.value)}</div>
-      <div className="tt-detail">
-        {d.percent.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}% do total
+    <div className="tt tt-tipos">
+      <div className="tt-label">{d.name}</div>
+      <div className="tt-value">{fmtBRLCompleto(d.value)}</div>
+      <div className="tt-detail" style={{ marginTop: 2 }}>
+        {fmtBRL(d.value)} · {d.percent.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}% do total
       </div>
+      {conceito && (
+        <div className="tt-conceito">{conceito}</div>
+      )}
     </div>
   );
 };

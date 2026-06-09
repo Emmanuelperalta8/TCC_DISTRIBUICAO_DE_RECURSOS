@@ -5,19 +5,44 @@ Fonte: Tesouro Nacional Transparente (via API CKAN)
 Autor: Emmanuel de Oliveira Peralta Duarte
 TCC - Engenharia de Software - ULBRA Palmas
 
-Correções aplicadas:
-  1. Filtro: apenas Item == Transferência E Transferência != FUNDEB/FUNDEF
-  2. Detecção de valores em centavos (divide por 100 se média por estado > 1B)
+Colunas reais do CSV (confirmado via diagnóstico):
+  - 'Item transferência' → tipo da transferência (FPE, FPM, ITR, IPI-EXP, etc.)
+  - 'Transferência'      → destino (FPE direto ao estado, FUNDEB, Royalties, etc.)
+  - '1º Decêndio', '2º Decêndio', '3º Decêndio' → valores por período
+
+Metodologia:
+  O CSV contém transferências estaduais e municipais agrupadas por UF.
+  Filtramos apenas as transferências destinadas ao ESTADO (ente estadual),
+  alinhadas ao relatório "Transferências para estados" do Tesouro Transparente.
+
+  Excluídos:
+  - Contribuições ao FUNDEB (ICMS, IPVA, ITCMD): saídas do estado para o fundo
+  - FPM: Fundo de Participação dos Municípios (vai aos municípios, não ao estado)
+  - ITR: Imposto Territorial Rural (50% vai ao município onde está o imóvel)
+  - Ajustes contábeis: AJUSTE FUNDEB VAAR, COUN VAAR
+
+  Nota: A distribuição do FUNDEB (R$1.4 bi para TO/2025) está em dataset
+  separado do CKAN e não consta neste CSV. É reportada pelo site oficial
+  como linha separada "FUNDEB" no relatório consolidado.
 """
 
-import requests
-import pandas as pd
+import logging
 import os
 import time
 from io import StringIO
+
+import pandas as pd
+import requests
 from dotenv import load_dotenv
 
 load_dotenv()
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    datefmt="%H:%M:%S",
+)
+log = logging.getLogger(__name__)
 
 SUPABASE_URL = os.getenv("SUPABASE_URL", "")
 SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_KEY", "")
@@ -32,15 +57,24 @@ ESTADOS = [
     "RJ","RN","RO","RR","RS","SC","SE","SP","TO"
 ]
 
-# Destinos a excluir (redistribuições — não são transferências diretas ao estado)
-DESTINOS_EXCLUIR = {"FUNDEB", "FUNDEF"}
+# Transferências a excluir da análise estadual:
+#   ICMS/IPVA/ITCMD = contribuições do estado AO FUNDEB (saídas, não entradas)
+#   FPM             = Fundo de Participação dos Municípios (destino: municípios)
+#   ITR             = 50% vai ao município do imóvel (não ao estado)
+#   Ajustes contábeis sem repasse efetivo
+TIPOS_EXCLUIR = {
+    "ICMS", "IPVA", "ITCMD",
+    "FPM",
+    "ITR",
+    "AJUSTE FUNDEB VAAR", "COUN VAAR",
+}
 
 # Valor máximo razoável por estado/mês (R$ 50 bilhões)
 VALOR_MAX_POR_ESTADO = 50_000_000_000
 
 
 def listar_arquivos_ckan() -> list:
-    print("  [CKAN] Consultando lista de arquivos...")
+    log.info("[CKAN] Consultando lista de arquivos...")
     r = requests.get(CKAN_API, params={"id": DATASET_ID}, timeout=30)
     r.raise_for_status()
     recursos = r.json()["result"]["resources"]
@@ -60,7 +94,7 @@ def listar_arquivos_ckan() -> list:
                 vistos[(ano, mes)] = {"nome": nome, "url": url, "ano": ano, "mes": mes}
 
     arquivos = sorted(vistos.values(), key=lambda x: (x["ano"], x["mes"]))
-    print(f"  ✓ {len(arquivos)} arquivos encontrados")
+    log.info("%d arquivos encontrados", len(arquivos))
     return arquivos
 
 
@@ -69,8 +103,8 @@ def baixar_csv_memoria(url: str) -> pd.DataFrame:
         r = requests.get(url, timeout=30)
         r.raise_for_status()
         return pd.read_csv(StringIO(r.content.decode("latin1")), sep=";", low_memory=False)
-    except Exception as e:
-        print(f"✗ {e}")
+    except requests.RequestException as e:
+        log.warning("Falha ao baixar CSV (%s): %s", url, e)
         return pd.DataFrame()
 
 
@@ -80,17 +114,16 @@ def processar_csv(df: pd.DataFrame, ano: int) -> pd.DataFrame:
 
     df.columns = df.columns.str.strip()
 
-    col_uf       = next((c for c in df.columns if c.strip().upper() == "UF"), None)
-    col_dec1     = next((c for c in df.columns if "1" in c and "ec" in c.lower()), None)
-    col_dec2     = next((c for c in df.columns if "2" in c and "ec" in c.lower()), None)
-    col_dec3     = next((c for c in df.columns if "3" in c and "ec" in c.lower()), None)
-    col_item     = next((c for c in df.columns if "item" in c.lower()), None)
-    col_transfer = next((c for c in df.columns if "transfer" in c.lower() and "item" not in c.lower()), None)
+    col_uf   = next((c for c in df.columns if c.strip().upper() == "UF"), None)
+    col_dec1 = next((c for c in df.columns if "1" in c and "ec" in c.lower()), None)
+    col_dec2 = next((c for c in df.columns if "2" in c and "ec" in c.lower()), None)
+    col_dec3 = next((c for c in df.columns if "3" in c and "ec" in c.lower()), None)
+    col_item = next((c for c in df.columns if "item" in c.lower()), None)
 
     if not col_uf or not col_item:
+        log.warning("CSV de %d sem colunas UF/item esperadas. Colunas: %s", ano, list(df.columns))
         return pd.DataFrame()
 
-    # Filtrar estados válidos
     df[col_uf] = df[col_uf].astype(str).str.strip().str.upper()
     df = df[df[col_uf].isin(ESTADOS)].copy()
 
@@ -98,27 +131,24 @@ def processar_csv(df: pd.DataFrame, ano: int) -> pd.DataFrame:
         return pd.DataFrame()
 
     df[col_item] = df[col_item].astype(str).str.strip()
-
-    # Filtro principal: excluir linhas onde destino é FUNDEB/FUNDEF
-    if col_transfer:
-        df[col_transfer] = df[col_transfer].astype(str).str.strip().str.upper()
-        df = df[~df[col_transfer].isin(DESTINOS_EXCLUIR)].copy()
+    df = df[~df[col_item].isin(TIPOS_EXCLUIR)].copy()
 
     if df.empty:
         return pd.DataFrame()
 
-    # Somar decêndios
     cols_val = [c for c in [col_dec1, col_dec2, col_dec3] if c]
     for c in cols_val:
         df[c] = pd.to_numeric(df[c], errors="coerce").fillna(0)
 
     df["valor_transferido"] = df[cols_val].sum(axis=1)
 
-    # Detecção de valores em centavos
-    # Se o valor médio por linha ultrapassar 1 bilhão, provavelmente está em centavos
+    # Detecção de valores em centavos: média > 1 bi sugere escala errada
     media = df["valor_transferido"].mean()
     if media > 1_000_000_000:
-        print(f"⚠ Valores em centavos detectados (média R${media/1e9:.1f}B) → dividindo por 100", end=" ")
+        log.warning(
+            "Valores em centavos detectados (média R$ %.1fB) — dividindo por 100",
+            media / 1e9,
+        )
         df["valor_transferido"] = df["valor_transferido"] / 100
 
     df["ano"]                = ano
@@ -131,9 +161,7 @@ def processar_csv(df: pd.DataFrame, ano: int) -> pd.DataFrame:
         .reset_index()
     )
 
-    # Remover valores absurdos (> 50B por estado/tipo/mês)
     resultado = resultado[resultado["valor_transferido"] <= VALOR_MAX_POR_ESTADO]
-
     return resultado[resultado["valor_transferido"] > 0]
 
 
@@ -144,27 +172,27 @@ def carregar_supabase(client, df: pd.DataFrame):
     for i in range(0, len(registros), BATCH):
         client.table("fato_transferencias").upsert(registros[i:i+BATCH]).execute()
         total += len(registros[i:i+BATCH])
-        print(f"\r    Supabase: {total}/{len(registros)}...", end="")
-    print(f"\r    ✓ {total:,} registros carregados          ")
+        log.debug("Supabase: %d/%d...", total, len(registros))
+    log.info("  %d registros carregados no Supabase", total)
 
 
 def main():
-    print("=" * 60)
-    print("  COLETA - TRANSFERÊNCIAS CONSTITUCIONAIS")
-    print("  Fonte: Tesouro Nacional → Supabase")
-    print("  TCC - Emmanuel Peralta - ULBRA Palmas")
-    print("=" * 60)
+    log.info("=" * 60)
+    log.info("  COLETA - TRANSFERÊNCIAS CONSTITUCIONAIS")
+    log.info("  Fonte: Tesouro Nacional → Supabase")
+    log.info("  TCC - Emmanuel Peralta - ULBRA Palmas")
+    log.info("=" * 60)
 
     if not SUPABASE_URL or not SUPABASE_KEY:
-        print("\n✗ Configure SUPABASE_URL e SUPABASE_SERVICE_KEY no .env")
+        log.error("Configure SUPABASE_URL e SUPABASE_SERVICE_KEY no .env")
         return
 
     from supabase import create_client
     client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-    print("\n  Limpando tabela fato_transferencias...")
+    log.info("Limpando tabela fato_transferencias...")
     client.table("fato_transferencias").delete().neq("id", 0).execute()
-    print("  ✓ Tabela limpa")
+    log.info("Tabela limpa")
 
     arquivos = listar_arquivos_ckan()
     frames_ano = []
@@ -181,22 +209,22 @@ def main():
                     .sum().reset_index()
                 )
                 total_bi = df_ano["valor_transferido"].sum() / 1e9
-                print(f"\n  Total {ano_atual}: R$ {total_bi:.1f}B")
+                log.info("Total %d: R$ %.1fB", ano_atual, total_bi)
                 carregar_supabase(client, df_ano)
                 frames_ano = []
 
-            print(f"\n▶ Ano {ano}")
+            log.info("▶ Ano %d", ano)
             ano_atual = ano
 
-        print(f"  {mes:02d}/{ano}...", end=" ", flush=True)
+        log.info("  %02d/%d...", mes, ano)
         df_raw  = baixar_csv_memoria(url)
         df_proc = processar_csv(df_raw, ano)
 
         if not df_proc.empty:
             frames_ano.append(df_proc)
-            print(f"✓ R$ {df_proc['valor_transferido'].sum()/1e9:.2f}B")
+            log.info("  ✓ R$ %.2fB", df_proc["valor_transferido"].sum() / 1e9)
         else:
-            print("⚠ sem dados")
+            log.warning("  sem dados para %02d/%d", mes, ano)
 
         time.sleep(0.2)
 
@@ -207,12 +235,12 @@ def main():
             .sum().reset_index()
         )
         total_bi = df_ano["valor_transferido"].sum() / 1e9
-        print(f"\n  Total {ano_atual}: R$ {total_bi:.1f}B")
+        log.info("Total %d: R$ %.1fB", ano_atual, total_bi)
         carregar_supabase(client, df_ano)
 
-    print(f"\n{'='*60}")
-    print("✓ Coleta e carga concluídas!")
-    print("=" * 60)
+    log.info("=" * 60)
+    log.info("Coleta e carga concluídas!")
+    log.info("=" * 60)
 
 
 if __name__ == "__main__":

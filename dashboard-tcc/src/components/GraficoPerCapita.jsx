@@ -101,6 +101,11 @@ export default function GraficoPerCapita({ dadosCompletos, anoSel, estadoSel, he
         </div>
       </div>
 
+      <figure
+        role="img"
+        aria-label={`Gráfico de barras: valor per capita por estado em ${anoSel}. Maior: ${dados[0]?.sigla_uf} com ${fmtPerCapita(dados[0]?.valor_per_capita ?? 0)}. Média nacional: ${fmtPerCapita(media)}`}
+        style={{ margin: 0 }}
+      >
       <ResponsiveContainer width="100%" height={height}>
         <BarChart
           data={dados}
@@ -150,6 +155,7 @@ export default function GraficoPerCapita({ dadosCompletos, anoSel, estadoSel, he
           </Bar>
         </BarChart>
       </ResponsiveContainer>
+      </figure>
 
       <div className="legend-row">
         {Object.entries(CORES).map(([regiao, cor]) => (

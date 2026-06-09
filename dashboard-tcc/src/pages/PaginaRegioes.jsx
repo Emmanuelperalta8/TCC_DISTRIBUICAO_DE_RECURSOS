@@ -1,4 +1,5 @@
 import GraficoRegioes from "../components/GraficoRegioes";
+import BotaoExportarCSV from "../components/BotaoExportarCSV";
 import PageHeader from "../components/PageHeader";
 
 const fmtBRL = (v) => {
@@ -21,6 +22,15 @@ const CORES = {
   "Centro-Oeste": "#C2410C",
 };
 
+const COLUNAS_EXPORT = [
+  { key: "regiao",           label: "Região" },
+  { key: "qtd_estados",      label: "Nº Estados" },
+  { key: "populacao",        label: "População" },
+  { key: "valor_total",      label: "Total Transferido (R$)" },
+  { key: "valor_per_capita", label: "Per Capita (R$)" },
+  { key: "pct",              label: "% do Total Nacional" },
+];
+
 export default function PaginaRegioes({ regioes, anoSel }) {
   const totalGeral = regioes.reduce((s, r) => s + (r.valor_total || 0), 0);
   const popGeral   = regioes.reduce((s, r) => s + (r.populacao  || 0), 0);
@@ -35,12 +45,24 @@ export default function PaginaRegioes({ regioes, anoSel }) {
     }))
     .sort((a, b) => b.valor_total - a.valor_total);
 
+  const dadosExport = regioesComPC.map((r) => ({
+    ...r,
+    pct: r.pct.toFixed(1) + "%",
+  }));
+
   return (
     <div className="page">
       <PageHeader
         eyebrow="Por Região"
         title="Transferências por Região"
         description="Comparativo regional do volume total transferido e valor per capita por habitante. Use o toggle Total / Per capita para alternar a visão."
+        acoes={
+          <BotaoExportarCSV
+            dados={dadosExport}
+            colunas={COLUNAS_EXPORT}
+            nomeArquivo={`regioes_${anoSel}.csv`}
+          />
+        }
       />
 
       <GraficoRegioes regioes={regioes} anoSel={anoSel} height={420} />
@@ -52,7 +74,7 @@ export default function PaginaRegioes({ regioes, anoSel }) {
           <div className="card-sub">Média nacional per capita: {fmtPC(mediaPC)}</div>
         </div>
 
-        <table className="ranking">
+        <table className="ranking" aria-label={`Tabela de transferências por região em ${anoSel}`}>
           <thead>
             <tr>
               <th>Região</th>

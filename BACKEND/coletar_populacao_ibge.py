@@ -1,4 +1,4 @@
-"""
+﻿"""
 Script de Coleta - Estimativas Populacionais IBGE
 API SIDRA do IBGE
 
@@ -18,7 +18,7 @@ from datetime import datetime
 OUTPUT_DIR = "dados_brutos"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-ANOS = list(range(2010, datetime.now().year + 1))
+ANOS = list(range(2010, min(datetime.now().year, 2025) + 1))
 
 # Código IBGE de cada estado (para consultas individuais se necessário)
 ESTADOS_IBGE = {
@@ -60,7 +60,6 @@ def coletar_populacao_sidra(anos: list) -> pd.DataFrame:
         f"/periodos/{periodos}"
         "/variaveis/9324"
         "?localidades=N3[all]"  # N3 = Unidades da Federação
-        "&classificacao=2[6794]"  # Sexo: Total
     )
 
     try:

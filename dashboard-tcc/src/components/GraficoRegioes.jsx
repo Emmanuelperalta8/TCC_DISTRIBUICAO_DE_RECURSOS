@@ -148,6 +148,11 @@ export default function GraficoRegioes({ regioes, anoSel, height = 230 }) {
         </div>
       </div>
 
+      <figure
+        role="img"
+        aria-label={`Gráfico de barras horizontais: transferências por região em ${anoSel} — visão ${vista === "total" ? "total" : "per capita"}`}
+        style={{ margin: 0 }}
+      >
       <ResponsiveContainer width="100%" height={height}>
         <BarChart
           data={dados}
@@ -204,6 +209,7 @@ export default function GraficoRegioes({ regioes, anoSel, height = 230 }) {
           </Bar>
         </BarChart>
       </ResponsiveContainer>
+      </figure>
     </div>
   );
 }

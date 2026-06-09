@@ -1,4 +1,4 @@
-export default function PageHeader({ eyebrow, title, description, extra }) {
+export default function PageHeader({ eyebrow, title, description, extra, acoes }) {
   const hoje = new Date().toLocaleDateString("pt-BR", {
     day: "2-digit", month: "long", year: "numeric",
   });
@@ -12,6 +12,7 @@ export default function PageHeader({ eyebrow, title, description, extra }) {
       </div>
       <div className="page-header-right">
         {extra}
+        {acoes && <div className="page-header-acoes">{acoes}</div>}
         <div className="badge">
           Fontes: <strong>Tesouro Nacional</strong> · <strong>IBGE</strong>
         </div>

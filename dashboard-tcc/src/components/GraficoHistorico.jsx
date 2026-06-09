@@ -53,7 +53,7 @@ export default function GraficoHistorico({ historicoTransf, estadoSel = "Todos",
   return (
     <div className="card">
       <div className="card-header">
-        <div className="card-title">Evolução das transferências — {escopo}</div>
+        <div className="card-title">Evolução das transferências  {escopo}</div>
         <div className="card-sub">
           Total anual transferido pela União · fonte: Tesouro Nacional
           {variacao !== null && (
@@ -72,6 +72,11 @@ export default function GraficoHistorico({ historicoTransf, estadoSel = "Todos",
         </div>
       </div>
 
+      <figure
+        role="img"
+        aria-label={`Gráfico de linha: evolução das transferências anuais  ${escopo}. Último ano: ${ultimo?.ano}, valor: ${fmtBRL(ultimo?.total ?? 0)}`}
+        style={{ margin: 0 }}
+      >
       <ResponsiveContainer width="100%" height={height}>
         <LineChart
           data={historicoTransf}
@@ -116,6 +121,7 @@ export default function GraficoHistorico({ historicoTransf, estadoSel = "Todos",
           )}
         </LineChart>
       </ResponsiveContainer>
+      </figure>
     </div>
   );
 }
