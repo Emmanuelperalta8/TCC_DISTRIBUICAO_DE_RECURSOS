@@ -48,7 +48,7 @@ SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_KEY", "")
 SICONFI_BASE = "https://apidatalake.tesouro.gov.br/ords/siconfi/tt"
 
 ANO_INICIO = 2016
-ANO_FIM    = 2024
+ANO_FIM    = 2025
 
 # Códigos IBGE dos estados — usados diretamente como id_ente no SICONFI
 IBGE_ESTADOS = {
