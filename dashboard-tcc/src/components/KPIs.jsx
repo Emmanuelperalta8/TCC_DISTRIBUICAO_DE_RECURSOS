@@ -1,18 +1,5 @@
-const fmtBRL = (v) => {
-  if (v >= 1e9)
-    return `R$ ${(v / 1e9).toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} bi`;
-  if (v >= 1e6)
-    return `R$ ${(v / 1e6).toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} mi`;
-  return `R$ ${Number(v).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-};
-
-const fmtPop = (v) =>
-  v >= 1e6
-    ? `${(v / 1e6).toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} mi hab.`
-    : `${Number(v).toLocaleString("pt-BR")} hab.`;
-
-const fmtPerCapita = (v) =>
-  `R$ ${Number(v).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+import { useFormato } from "../contexts/FormatoContext";
+import { fmtBRL, fmtPerCapita, fmtPop } from "../utils/fmt";
 
 function DesvioMedia({ valor, media }) {
   if (!media || !valor) return null;
@@ -30,6 +17,8 @@ function DesvioMedia({ valor, media }) {
 }
 
 export default function KPIs({ dadosCompletos, anoSel, estadoSel }) {
+  const { detalhe } = useFormato();
+
   const popTotal    = dadosCompletos.reduce((s, r) => s + Number(r.populacao || 0), 0);
   const totalTransf = dadosCompletos.reduce((s, r) => s + Number(r.valor_total || 0), 0);
   const perCapita   = popTotal > 0 ? totalTransf / popTotal : 0;
@@ -44,7 +33,7 @@ export default function KPIs({ dadosCompletos, anoSel, estadoSel }) {
     <div className="kpis">
       <div className="kpi" style={{ "--kpi-color": "#1351B4" }}>
         <div className="kpi-label">Total transferido</div>
-        <div className="kpi-value">{fmtBRL(totalTransf)}</div>
+        <div className="kpi-value">{fmtBRL(totalTransf, detalhe)}</div>
         <div className="kpi-sub">{escopo} · {anoSel} · {fmtPop(popTotal)}</div>
       </div>
 

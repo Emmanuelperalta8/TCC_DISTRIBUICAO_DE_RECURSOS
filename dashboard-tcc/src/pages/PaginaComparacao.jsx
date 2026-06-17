@@ -5,6 +5,8 @@ import {
 } from "recharts";
 import PageHeader from "../components/PageHeader";
 import BotaoExportarCSV from "../components/BotaoExportarCSV";
+import { useFormato } from "../contexts/FormatoContext";
+import { fmtBRL, fmtPerCapita as fmtPC, fmtPct } from "../utils/fmt";
 
 const CORES = {
   Norte:          "#0077B6",
@@ -14,17 +16,6 @@ const CORES = {
   "Centro-Oeste": "#C2410C",
 };
 
-const fmtBRL = (v) => {
-  if (v >= 1e9) return `R$ ${(v / 1e9).toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} bi`;
-  if (v >= 1e6) return `R$ ${(v / 1e6).toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} mi`;
-  return `R$ ${Number(v).toLocaleString("pt-BR")}`;
-};
-
-const fmtPC = (v) =>
-  `R$ ${Number(v).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-
-const fmtPct = (v) =>
-  `${Number(v).toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`;
 
 // Cor semântica para o índice de dependência fiscal
 function corDependencia(pct) {
@@ -46,7 +37,7 @@ const COLUNAS_EXPORT = [
   { key: "dependencia_pct",   label: "Índice Dependência (%)" },
 ];
 
-const TooltipComparacao = ({ active, payload, label }) => {
+function TooltipComparacao({ active, payload, label }) {
   if (!active || !payload?.length) return null;
   const transf  = payload.find((p) => p.dataKey === "transf_per_capita");
   const despesa = payload.find((p) => p.dataKey === "desp_per_capita");
@@ -67,9 +58,10 @@ const TooltipComparacao = ({ active, payload, label }) => {
       )}
     </div>
   );
-};
+}
 
-const TooltipDependencia = ({ active, payload }) => {
+function TooltipDependencia({ active, payload }) {
+  const { detalhe } = useFormato();
   if (!active || !payload?.length) return null;
   const d = payload[0]?.payload;
   return (
@@ -78,11 +70,11 @@ const TooltipDependencia = ({ active, payload }) => {
       <div className="tt-value" style={{ color: corDependencia(d?.indice_dependencia ?? 0) }}>
         {fmtPct(d?.indice_dependencia ?? 0)} de dependência
       </div>
-      <div className="tt-detail">{fmtBRL(d?.valor_total ?? 0)} recebido</div>
-      <div className="tt-detail">{fmtBRL(d?.despesa_liquidada ?? 0)} gasto</div>
+      <div className="tt-detail">{fmtBRL(d?.valor_total ?? 0, detalhe)} recebido</div>
+      <div className="tt-detail">{fmtBRL(d?.despesa_liquidada ?? 0, detalhe)} gasto</div>
     </div>
   );
-};
+}
 
 export default function PaginaComparacao({ dadosCompletos, anoSel, loading }) {
   const [vista, setVista] = useState("per_capita");

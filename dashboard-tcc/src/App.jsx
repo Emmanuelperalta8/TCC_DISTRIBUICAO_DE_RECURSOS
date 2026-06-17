@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { FormatoProvider } from "./contexts/FormatoContext";
 import { useDados } from "./hooks/useDados";
 import Sidebar from "./components/Sidebar";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -155,7 +156,9 @@ function AppInner() {
 export default function App() {
   return (
     <AuthProvider>
-      <AppInner />
+      <FormatoProvider>
+        <AppInner />
+      </FormatoProvider>
     </AuthProvider>
   );
 }

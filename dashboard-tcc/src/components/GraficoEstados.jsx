@@ -2,6 +2,8 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, Cell
 } from "recharts";
+import { useFormato } from "../contexts/FormatoContext";
+import { fmtBRL, fmtBRLCompact } from "../utils/fmt";
 
 const CORES_REGIOES = {
   "Norte":        "#00c9a7",
@@ -11,26 +13,21 @@ const CORES_REGIOES = {
   "Centro-Oeste": "#f43f5e",
 };
 
-const fmtBRL = (v) => {
-  if (v >= 1e9) return `R$ ${(v / 1e9).toFixed(1)}B`;
-  if (v >= 1e6) return `R$ ${(v / 1e6).toFixed(1)}M`;
-  return `R$ ${Number(v).toLocaleString("pt-BR")}`;
-};
-
-const TooltipCustom = ({ active, payload, label }) => {
+function TooltipCustom({ active, payload, label }) {
+  const { detalhe } = useFormato();
   if (!active || !payload?.length) return null;
   const d = payload[0].payload;
   return (
     <div className="tt">
       <div className="tt-label">{d.nome_estado || label} ({d.sigla_uf})</div>
-      <div className="tt-value">{fmtBRL(d.valor_total)}</div>
+      <div className="tt-value">{fmtBRL(d.valor_total, detalhe)}</div>
       <div style={{ fontSize: 10, color: "var(--muted)", marginTop: 2 }}>
         Per capita: R$ {Number(d.valor_per_capita).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
       </div>
       <div style={{ fontSize: 10, color: CORES_REGIOES[d.regiao], marginTop: 2 }}>{d.regiao}</div>
     </div>
   );
-};
+}
 
 export default function GraficoEstados({ dadosCompletos, anoSel, estadoSel }) {
   const dados = [...dadosCompletos]
@@ -56,7 +53,7 @@ export default function GraficoEstados({ dadosCompletos, anoSel, estadoSel }) {
             axisLine={false} tickLine={false}
           />
           <YAxis
-            tickFormatter={fmtBRL}
+            tickFormatter={fmtBRLCompact}
             tick={{ fill: "#64748b", fontSize: 10 }}
             axisLine={false} tickLine={false} width={65}
           />

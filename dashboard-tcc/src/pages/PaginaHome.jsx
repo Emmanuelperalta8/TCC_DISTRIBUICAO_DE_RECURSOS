@@ -7,29 +7,29 @@ const ABAS = [
     tagline: "KPIs e série histórica",
     cor: "#1351B4",
     bg: "#EFF4FF",
-    resumo: "Panorama nacional das transferências federais com indicadores consolidados e evolução temporal.",
-    descricao: "Painel principal do dashboard. Apresenta os principais indicadores nacionais de transferências constitucionais para o ano selecionado: total transferido, variação em relação ao ano anterior, valor per capita nacional e distribuição por região. Inclui também a série histórica completa (2016–2024) com gráfico interativo de evolução anual.",
+    resumo: "Números gerais do Brasil: total repassado, variação anual e histórico desde 2016.",
+    descricao: "É a tela principal. Você vê quanto o governo federal transferiu no total naquele ano, se aumentou ou diminuiu em relação ao anterior e quanto isso representa por habitante. Tem também o gráfico com a evolução desde 2016, onde dá pra ver o impacto da pandemia em 2020 e as variações nos anos seguintes com bastante clareza.",
     fontes: [
       {
-        nome: "STN — SICONFI",
-        detalhe: "Tabela agg_por_estado_ano — agregação anual por estado de todos os repasses registrados no sistema SICONFI do Tesouro Nacional.",
+        nome: "STN/SICONFI",
+        detalhe: "Transferências consolidadas por estado e ano, coletadas da API pública do Tesouro Nacional.",
       },
       {
         nome: "IBGE",
-        detalhe: "Estimativas populacionais anuais por estado (dim_populacao), usadas para calcular os valores per capita.",
+        detalhe: "Estimativas populacionais anuais por estado, usadas para calcular os valores per capita.",
       },
     ],
-    periodo: { min: 2016, max: 2024 },
+    periodo: { min: 2016, max: 2025 },
     calculos: [
-      { formula: "Total nacional = Σ valor transferido (todos os estados)", desc: "Soma de todos os repasses do ano selecionado para os 27 estados." },
-      { formula: "Variação % = (valorAtual − valorAnterior) / valorAnterior × 100", desc: "Crescimento ou redução do montante total em relação ao ano anterior." },
-      { formula: "Per capita = total / população estimada", desc: "Valor médio transferido por habitante no Brasil no ano selecionado." },
+      { formula: "Total nacional = Σ transferido (todos os estados)", desc: "Soma de todos os repasses do ano para os 27 estados." },
+      { formula: "Variação % = (atual − anterior) / anterior × 100", desc: "Crescimento ou queda do total em relação ao ano anterior." },
+      { formula: "Per capita = total / população estimada", desc: "Valor médio transferido por habitante no Brasil naquele ano." },
     ],
     tutorial: [
-      "Use o filtro de ANO na sidebar para navegar entre os exercícios de 2016 a 2024.",
-      "Os KPIs no topo mostram os totais do ano escolhido. O badge verde/vermelho indica a variação vs. ano anterior.",
-      "O gráfico de linha mostra a evolução histórica. Passe o mouse sobre os pontos para ver os valores exatos.",
-      "Use o filtro de REGIÃO ou ESTADO para ver a série histórica filtrada.",
+      "Mude o ANO na barra lateral para navegar entre 2016 e 2025.",
+      "O badge verde ou vermelho ao lado dos números mostra a variação em relação ao ano anterior.",
+      "Passe o mouse no gráfico de linha para ver os valores de cada ano.",
+      "Filtre por REGIÃO ou ESTADO para ver a série histórica de um recorte específico.",
     ],
   },
   {
@@ -38,28 +38,28 @@ const ABAS = [
     tagline: "Distribuição regional",
     cor: "#C96A00",
     bg: "#FFF7ED",
-    resumo: "Comparação das 5 regiões brasileiras quanto ao volume e per capita de transferências recebidas.",
-    descricao: "Analisa como as transferências constitucionais se distribuem entre as cinco regiões do Brasil: Norte, Nordeste, Sudeste, Sul e Centro-Oeste. Mostra o total absoluto, o valor per capita e a participação percentual de cada região no total nacional. Permite identificar assimetrias regionais e comparar a relação entre tamanho populacional e recursos recebidos.",
+    resumo: "Compara as cinco regiões: total absoluto, per capita e participação no montante nacional.",
+    descricao: "Uma das comparações mais reveladoras do dashboard. O Nordeste e o Norte recebem muito mais por habitante do que o Sudeste, o que é esperado pelo critério redistributivo do FPE, mas o Sudeste ainda domina no total absoluto por causa do tamanho da sua população. Vale explorar com o filtro de região para ver o detalhe de cada estado.",
     fontes: [
       {
-        nome: "STN — SICONFI",
-        detalhe: "Transferências agregadas por estado e somadas por região conforme o campo 'regiao' da tabela dim_estado.",
+        nome: "STN/SICONFI",
+        detalhe: "Os dados por estado são agrupados por região conforme a tabela de estados cadastrada no banco.",
       },
       {
         nome: "IBGE",
-        detalhe: "População regional = soma das populações estaduais estimadas para o ano selecionado.",
+        detalhe: "População regional calculada somando as estimativas estaduais de cada ano.",
       },
     ],
-    periodo: { min: 2016, max: 2024 },
+    periodo: { min: 2016, max: 2025 },
     calculos: [
-      { formula: "Total da região = Σ valor transferido (estados da região)", desc: "Soma de todos os repasses aos estados pertencentes à região." },
-      { formula: "Per capita regional = total da região / população da região", desc: "Valor médio por habitante dentro de cada região." },
-      { formula: "Participação % = total da região / total nacional × 100", desc: "Peso de cada região no montante total distribuído no país." },
+      { formula: "Total da região = Σ transferido (estados da região)", desc: "Soma de todos os repasses para os estados daquela região." },
+      { formula: "Per capita regional = total da região / população da região", desc: "Valor médio por habitante dentro da região." },
+      { formula: "Participação % = total da região / total nacional × 100", desc: "Quanto cada região representa do total distribuído no país." },
     ],
     tutorial: [
-      "O gráfico de barras compara as regiões pelo total absoluto. Clique nas barras para destacar.",
-      "Alterne para 'Per capita' para ver qual região recebe mais por habitante — geralmente Norte e Nordeste lideram.",
-      "Use o filtro REGIÃO na sidebar para isolar uma região e ver seus estados individualmente nas demais abas.",
+      "O gráfico de barras compara as regiões pelo total absoluto. Alterne para 'Per capita' para ver a ordem mudar.",
+      "Norte e Nordeste costumam liderar o per capita, reflexo do critério redistributivo das transferências constitucionais.",
+      "Selecione uma REGIÃO na barra lateral para ver só os estados dela nas outras abas.",
     ],
   },
   {
@@ -68,28 +68,28 @@ const ABAS = [
     tagline: "Per capita e ranking",
     cor: "#4338CA",
     bg: "#EEF2FF",
-    resumo: "Ranking dos 27 estados e o DF com valores absolutos e per capita de transferências federais.",
-    descricao: "Apresenta o ranking completo dos 27 estados e o Distrito Federal com os valores de transferências recebidas. Permite comparar os estados tanto pelo volume absoluto quanto pelo valor per capita — que revela quais unidades federativas são mais dependentes dos repasses federais em relação à sua população. Inclui mapa de calor e gráfico de barras horizontais.",
+    resumo: "Ranking dos 27 estados com valores absolutos e por habitante de transferências federais.",
+    descricao: "Essa aba tem uma coisa interessante: quando você alterna de valor absoluto para per capita, o ranking vira completamente. São Paulo lidera no total porque tem 46 milhões de habitantes, mas Roraima e Amapá aparecem no topo por habitante porque têm populações pequenas e recebem repasses relativamente altos. Esse contraste é um dos pontos centrais do trabalho.",
     fontes: [
       {
-        nome: "STN — SICONFI",
-        detalhe: "Tabela agg_por_estado_ano com o total de transferências por estado/ano, previamente calculado pelo ETL.",
+        nome: "STN/SICONFI",
+        detalhe: "Total de transferências por estado e ano, consolidado no banco de dados do projeto.",
       },
       {
         nome: "IBGE",
-        detalhe: "dim_populacao com estimativas populacionais por estado e ano. Anos censitários usam dado do Censo; demais usam projeções intercensitárias.",
+        detalhe: "Estimativas populacionais por estado e ano. 2022 usa o Censo; os outros anos usam as projeções intercensitárias do IBGE.",
       },
     ],
-    periodo: { min: 2016, max: 2024 },
+    periodo: { min: 2016, max: 2025 },
     calculos: [
-      { formula: "Per capita = valor transferido / população estimada", desc: "Transferências recebidas divididas pela população do estado no mesmo ano." },
-      { formula: "Ranking absoluto = ordenação decrescente por valor total", desc: "SP, MG e RJ tendem a liderar por tamanho absoluto do orçamento." },
-      { formula: "Ranking per capita = ordenação decrescente por valor/habitante", desc: "Estados pequenos do Norte frequentemente lideram o ranking per capita." },
+      { formula: "Per capita = valor transferido / população do estado", desc: "Transferências divididas pela população estimada naquele ano." },
+      { formula: "Ranking absoluto → decrescente por valor total", desc: "SP, MG e RJ lideram por tamanho absoluto." },
+      { formula: "Ranking per capita → decrescente por valor/habitante", desc: "RR e AP frequentemente aparecem no topo." },
     ],
     tutorial: [
-      "Por padrão o ranking ordena pelo valor total. Clique em 'Per capita' para ver a ordenação por habitante.",
-      "Estados como Roraima e Amapá aparecem no topo do per capita por terem pequenas populações e receberem repasses proporcionalmente altos.",
-      "Use o filtro REGIÃO para comparar apenas os estados de uma região específica.",
+      "Por padrão o ranking ordena pelo total. Clique em 'Per capita' para ver a ordenação por habitante.",
+      "Roraima e Amapá aparecem no topo do per capita porque têm populações pequenas e recebem repasses proporcionalmente altos.",
+      "Use o filtro de REGIÃO para comparar só os estados de uma mesma região.",
     ],
   },
   {
@@ -98,23 +98,23 @@ const ABAS = [
     tagline: "Modalidades de transferência",
     cor: "#7C3AED",
     bg: "#F5F3FF",
-    resumo: "Detalhamento por modalidade: FPE, FPM, Lei Kandir, CIDE, Royalties e mais de 20 tipos.",
-    descricao: "Detalha as diferentes modalidades de transferência constitucional e legal da União para os estados. Cada tipo possui uma base legal específica que define os critérios de partilha. As principais modalidades são o FPE (Fundo de Participação dos Estados), FPM (Fundo de Participação dos Municípios repassado via estado), IPI-Exportação, CIDE-Combustíveis, Desoneração do ICMS (Lei Kandir) e Royalties de Petróleo e Mineração (CFEM/CFURH).",
+    resumo: "FPE, FPM, Lei Kandir, CIDE, Royalties: quem recebe o quê e quanto.",
+    descricao: "Nem toda transferência federal funciona da mesma forma. O FPE (Fundo de Participação dos Estados) é o maior repasse e segue um critério redistributivo definido em lei. Já os Royalties de petróleo dependem de onde o recurso é extraído, por isso Rio de Janeiro e Espírito Santo recebem muito mais nessa modalidade do que outros. Aqui você consegue ver a composição exata de cada estado.",
     fontes: [
       {
-        nome: "STN — SICONFI (fato_transferencias)",
-        detalhe: "Tabela com granularidade por estado, ano e tipo de transferência. Permite filtrar por estado ou região para ver a composição específica dos repasses.",
+        nome: "STN/SICONFI",
+        detalhe: "Tabela com granularidade por estado, ano e tipo de transferência, coletada da API do Tesouro Nacional.",
       },
     ],
-    periodo: { min: 2016, max: 2024 },
+    periodo: { min: 2016, max: 2025 },
     calculos: [
-      { formula: "Participação do tipo = valor do tipo / total de todos os tipos × 100", desc: "Peso relativo de cada modalidade no montante total transferido." },
-      { formula: "Ranking de tipos = ordenação decrescente por valor_total", desc: "FPE e FPM concentram historicamente a maior parte dos repasses." },
+      { formula: "Participação do tipo = valor do tipo / total × 100", desc: "Quanto cada modalidade representa do total recebido." },
+      { formula: "Ranking de tipos → decrescente por valor total", desc: "FPE historicamente concentra a maior fatia." },
     ],
     tutorial: [
-      "O gráfico de pizza mostra a distribuição por modalidade para o ano e filtro selecionados.",
-      "Filtre por estado para ver quais tipos de repasse são mais relevantes para aquela UF (ex: estados produtores de petróleo recebem muito em Royalties).",
-      "A tabela abaixo do gráfico exibe a descrição de cada tipo e sua base legal.",
+      "O gráfico de pizza mostra a composição dos repasses por modalidade para o filtro selecionado.",
+      "Filtre por um estado produtor de petróleo (como RJ ou ES) para ver o peso dos Royalties.",
+      "A tabela abaixo traz uma descrição curta de cada tipo e a base legal correspondente.",
     ],
   },
   {
@@ -124,29 +124,29 @@ const ABAS = [
     cor: "#166534",
     bg: "#F0FDF4",
     novo: true,
-    resumo: "Índice de Dependência Fiscal: quanto das despesas de cada estado é financiado por transferências federais.",
-    descricao: "Confronta o total de transferências constitucionais recebidas da União com o total de despesas liquidadas pelo próprio governo estadual. Calcula o Índice de Dependência Fiscal de cada estado — quanto por cento de seu orçamento executado é financiado por repasses federais. Estados com índice acima de 60% são altamente dependentes da União. Também compara os valores per capita de transferências e despesas.",
+    resumo: "Quanto das despesas de cada estado é coberto por transferências federais.",
+    descricao: "Essa foi a aba mais trabalhosa. Os dados de despesas exigiram uma coleta separada no SICONFI, usando o RREO (Relatório Resumido da Execução Orçamentária) de cada estado, especificamente o 6º bimestre, que acumula o ano inteiro. Com isso calculei o Índice de Dependência Fiscal: quanto por cento dos gastos do governo estadual vem de repasses federais. Amapá e Roraima costumam passar dos 60%.",
     fontes: [
       {
-        nome: "STN — SICONFI RREO Anexo 1 (fato_despesas_uf)",
-        detalhe: "Relatório Resumido da Execução Orçamentária, 6º bimestre (acumulado anual). Conta 'TOTAL DAS DESPESAS (XII)' — coluna 'Despesas Liquidadas Até o Bimestre'. Coletado via API pública do SICONFI.",
+        nome: "STN/SICONFI - RREO Anexo 1",
+        detalhe: "Relatório Resumido da Execução Orçamentária, 6º bimestre. Conta 'TOTAL DAS DESPESAS (XII)', coluna 'Despesas Liquidadas Até o Bimestre'. API pública do SICONFI.",
       },
       {
-        nome: "STN — SICONFI (transferências)",
-        detalhe: "Mesmo conjunto de dados das demais abas — agg_por_estado_ano com o valor total transferido por estado e ano.",
+        nome: "STN/SICONFI (transferências)",
+        detalhe: "O mesmo conjunto de dados das outras abas, com o total transferido por estado e ano.",
       },
     ],
-    periodo: { min: 2016, max: 2024 },
+    periodo: { min: 2016, max: 2025 },
     calculos: [
-      { formula: "Índice de Dependência = (transferências / despesas liquidadas) × 100", desc: "Percentual das despesas estaduais que é coberto pelos repasses federais." },
-      { formula: "Despesa per capita = despesas liquidadas / população estimada", desc: "Total de despesas do governo estadual dividido pela população." },
-      { formula: "Transferência per capita = transferências / população estimada", desc: "Repasses federais recebidos divididos pela população do estado." },
+      { formula: "Índice de Dependência = (transferências / despesas liquidadas) × 100", desc: "Percentual das despesas estaduais coberto pelos repasses federais." },
+      { formula: "Despesa per capita = despesas liquidadas / população", desc: "Quanto o governo estadual gastou por habitante naquele ano." },
+      { formula: "Transferência per capita = transferências / população", desc: "Quanto o estado recebeu de repasses federais por habitante." },
     ],
     tutorial: [
-      "Na visão 'Per capita' o gráfico agrupa barras azuis (transferências) e roxas (despesas) por estado.",
-      "Na visão 'Dependência Fiscal' as barras são coloridas: verde = baixa dependência, âmbar = média, vermelho = alta.",
-      "Estados do Norte e Nordeste tendem a ter índice mais alto — recebem proporcionalmente mais do que gastam por conta própria.",
-      "Roraima e Amapá frequentemente ultrapassam 60% — mais da metade de seus gastos vem de repasses federais.",
+      "Na visão 'Per capita' as barras azul (transferências) e roxo (despesas) aparecem lado a lado por estado.",
+      "Na visão 'Dependência Fiscal' as barras ficam coloridas: verde é baixa dependência, âmbar é média e vermelho é alta.",
+      "Estados do Norte e Nordeste costumam ter índice mais alto, pois gastam relativamente pouco com recursos próprios.",
+      "Roraima e Amapá costumam passar dos 60%, o que significa que mais da metade dos seus gastos vem de Brasília.",
     ],
   },
 ];
@@ -232,25 +232,26 @@ export default function PaginaHome({ setPagina }) {
             marginBottom: 16,
           }}>
             <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#4ADE80", display: "inline-block" }} />
-            Trabalho de Conclusão de Curso — Dados Reais
+            TCC: Dados 100% Reais
           </div>
           <h1 style={{ fontSize: 26, fontWeight: 800, lineHeight: 1.25, marginBottom: 10 }}>
             Dashboard de Distribuição de Recursos Federais
           </h1>
-          <p style={{ fontSize: 13.5, opacity: 0.85, maxWidth: 540, lineHeight: 1.7, marginBottom: 28 }}>
-            Ferramenta analítica com dados oficiais do Tesouro Nacional (STN/SICONFI) e do IBGE.
-            Analisa como as transferências constitucionais são distribuídas entre os 27 estados
-            brasileiros e se essa distribuição é proporcional às necessidades de cada ente federado.
+          <p style={{ fontSize: 13.5, opacity: 0.85, lineHeight: 1.7, marginBottom: 28 }}>
+            Esse dashboard foi desenvolvido como TCC em Engenharia de Software na ULBRA Palmas.
+            A ideia foi cruzar dados públicos do Tesouro Nacional com estimativas do IBGE para
+            entender como o dinheiro federal chega nos estados e se essa divisão é proporcional
+            quando você olha por habitante.
           </p>
           <div style={{ display: "flex", gap: 32, flexWrap: "wrap" }}>
             {[
-              ["Período", "2016 – 2024"],
+              ["Período", "2016 – 2025"],
               ["Estados", "27 UFs + DF"],
               ["Fonte", "STN / SICONFI"],
               ["Autor", "Emmanuel O. P. Duarte"],
               ["Curso", "Eng. de Software · ULBRA Palmas"],
             ].map(([k, v]) => (
-              <div key={k}>
+              <div key={k} style={{ minWidth: 90 }}>
                 <div style={{ fontSize: 10, opacity: 0.65, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em" }}>{k}</div>
                 <div style={{ fontSize: 14, fontWeight: 700, marginTop: 3 }}>{v}</div>
               </div>
@@ -261,18 +262,14 @@ export default function PaginaHome({ setPagina }) {
 
       {/* ── Grid de seções ────────────────────────────── */}
       <div style={{ marginBottom: 8 }}>
-        <h2 style={{ fontSize: 15, fontWeight: 700, color: "var(--text)", marginBottom: 4 }}>
-          Consultas disponíveis no dashboard
+        <h2 style={{ fontSize: 15, fontWeight: 700, color: "var(--text)", marginBottom: 4, paddingLeft: 12, borderLeft: "3px solid var(--accent)" }}>
+          O que tem aqui
         </h2>
         <p style={{ fontSize: 12.5, color: "var(--text-3)", marginBottom: 20 }}>
-          Clique em uma seção para ver a descrição completa, fontes de dados e tutorial de uso.
+          Clique em qualquer seção para ver de onde vêm os dados, como os cálculos funcionam e dicas de uso.
         </p>
 
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
-          gap: 12,
-        }}>
+        <div className="home-cards">
           {ABAS.map((a) => {
             const ativo = sel === a.id;
             return (
@@ -306,7 +303,8 @@ export default function PaginaHome({ setPagina }) {
                 {a.novo && (
                   <div style={{
                     position: "absolute", top: 10, right: 10,
-                    background: "#166534", color: "#fff",
+                    background: ativo ? "rgba(255,255,255,0.9)" : "#166534",
+                    color: ativo ? "#166534" : "#fff",
                     fontSize: 9, fontWeight: 800, letterSpacing: "0.05em",
                     borderRadius: 4, padding: "2px 6px", textTransform: "uppercase",
                   }}>Novo</div>
@@ -356,10 +354,8 @@ export default function PaginaHome({ setPagina }) {
                 <IconeAba id={aba.id} size={24} />
               </div>
               <div>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.7)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 2 }}>
-                  Seção do Dashboard
-                </div>
                 <div style={{ fontSize: 18, fontWeight: 800, color: "#fff" }}>{aba.label}</div>
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", marginTop: 3 }}>{aba.tagline}</div>
               </div>
             </div>
             <button
@@ -384,14 +380,14 @@ export default function PaginaHome({ setPagina }) {
           </div>
 
           {/* corpo do painel */}
-          <div style={{ padding: "28px 28px 32px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 28 }}>
+          <div className="home-panel-body">
 
             {/* coluna esquerda */}
             <div>
               {/* descrição */}
               <div style={{ marginBottom: 24 }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>
-                  Sobre esta seção
+                  O que é
                 </div>
                 <p style={{ fontSize: 13.5, color: "var(--text-2)", lineHeight: 1.7 }}>{aba.descricao}</p>
               </div>
@@ -403,12 +399,12 @@ export default function PaginaHome({ setPagina }) {
                 display: "flex", gap: 32, marginBottom: 24,
               }}>
                 <div>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Período mínimo</div>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Desde</div>
                   <div style={{ fontSize: 22, fontWeight: 800, color: aba.cor }}>{aba.periodo.min}</div>
                 </div>
                 <div style={{ width: 1, background: "var(--border)" }} />
                 <div>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Período máximo</div>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Até</div>
                   <div style={{ fontSize: 22, fontWeight: 800, color: aba.cor }}>{aba.periodo.max}</div>
                 </div>
                 <div style={{ width: 1, background: "var(--border)" }} />
@@ -421,7 +417,7 @@ export default function PaginaHome({ setPagina }) {
               {/* fontes */}
               <div>
                 <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 10 }}>
-                  Fontes de dados
+                  De onde vêm os dados
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                   {aba.fontes.map((f) => (
@@ -442,7 +438,7 @@ export default function PaginaHome({ setPagina }) {
               {/* cálculos */}
               <div style={{ marginBottom: 24 }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 10 }}>
-                  Cálculos utilizados
+                  Como é calculado
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                   {aba.calculos.map((c) => (
@@ -468,7 +464,7 @@ export default function PaginaHome({ setPagina }) {
               {/* tutorial */}
               <div>
                 <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 10 }}>
-                  Como usar
+                  Dicas de uso
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                   {aba.tutorial.map((t, i) => (
@@ -514,17 +510,17 @@ export default function PaginaHome({ setPagina }) {
 
       {/* ── Notas metodológicas (compactas) ──────────── */}
       <div style={{ marginTop: 32 }}>
-        <h2 style={{ fontSize: 15, fontWeight: 700, color: "var(--text)", marginBottom: 16 }}>
-          Notas metodológicas
+        <h2 style={{ fontSize: 15, fontWeight: 700, color: "var(--text)", marginBottom: 16, paddingLeft: 12, borderLeft: "3px solid var(--accent)" }}>
+          Escolhas metodológicas
         </h2>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+        <div className="home-notas">
           {[
-            { titulo: "Período mínimo: 2016", texto: "Limite inferior definido pela disponibilidade consistente dos dados de transferências no SICONFI com a estrutura atual do PCASP." },
-            { titulo: "Período máximo: 2024", texto: "O RREO do 6º bimestre de 2025 só será publicado pelos estados em fevereiro de 2026. Dados incompletos não foram incluídos." },
-            { titulo: "Despesas Liquidadas", texto: "Estágio em que o serviço foi entregue e a dívida reconhecida (Lei 4.320/1964, art. 63). Superior a 'empenhadas' para análise de gasto efetivo." },
-            { titulo: "Intra-orçamentárias", texto: "Os totais de despesas usam a conta TOTAL DAS DESPESAS (XII) que consolida despesas extra e intra-orçamentárias, evitando dupla contagem." },
-            { titulo: "Transferências incluídas", texto: "Transferências constitucionais e legais: FPE, FPM, IPI-Exportação, CIDE, Lei Kandir, Royalties. Não inclui transferências voluntárias (convênios)." },
-            { titulo: "Dados de população", texto: "Estimativas populacionais anuais do IBGE. Ano de Censo (2022) usa dado censitário; demais anos usam projeções intercensitárias oficiais." },
+            { titulo: "Por que começa em 2016?", texto: "Antes disso os dados no SICONFI não estavam organizados com a estrutura atual do PCASP, então a série histórica ficaria inconsistente." },
+            { titulo: "Por que vai até 2025?", texto: "O RREO do 6º bimestre (ano completo) é publicado pelos estados em janeiro/fevereiro do ano seguinte. O dado de 2025 já estava disponível quando esse trabalho foi concluído." },
+            { titulo: "O que são Despesas Liquidadas?", texto: "É o estágio em que o serviço foi entregue e a dívida reconhecida, ou seja, gasto real, não só comprometido. É o indicador mais usado pra medir o que um governo efetivamente gastou." },
+            { titulo: "Sobre as despesas intra-orçamentárias", texto: "O total de despesas usa a conta que já consolida tudo (extra e intra-orçamentárias juntas), evitando contar o mesmo gasto duas vezes." },
+            { titulo: "Quais transferências estão incluídas?", texto: "Só as constitucionais e legais: FPE, FPM, IPI-Exportação, CIDE, Lei Kandir e Royalties. Convênios e emendas parlamentares ficaram fora do escopo." },
+            { titulo: "De onde vem a população?", texto: "Estimativas anuais do IBGE. O ano de 2022 usa o Censo; os demais usam as projeções intercensitárias oficiais." },
           ].map((n) => (
             <div key={n.titulo} style={{
               background: "var(--surface)",
@@ -553,12 +549,37 @@ export default function PaginaHome({ setPagina }) {
         lineHeight: 1.9,
       }}>
         <div style={{ fontWeight: 700, color: "var(--text-2)" }}>Emmanuel de Oliveira Peralta Duarte</div>
-        <div>TCC — Engenharia de Software · ULBRA Palmas · 2025</div>
-        <div>Todos os dados são públicos, provenientes de fontes oficiais do Governo Federal Brasileiro.</div>
+        <div>TCC em Engenharia de Software · ULBRA Palmas · 2025</div>
+        <div>Todos os dados são públicos e vêm diretamente de fontes oficiais do Governo Federal.</div>
       </div>
 
       <style>{`
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+        .home-cards {
+          display: grid;
+          grid-template-columns: repeat(5, 1fr);
+          gap: 12px;
+        }
+        .home-panel-body {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 28px;
+          padding: 28px 28px 32px;
+        }
+        .home-notas {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 12px;
+        }
+        @media (max-width: 860px) {
+          .home-cards { grid-template-columns: repeat(3, 1fr); }
+          .home-panel-body { grid-template-columns: 1fr; }
+          .home-notas { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 560px) {
+          .home-cards { grid-template-columns: repeat(2, 1fr); }
+          .home-notas { grid-template-columns: 1fr; }
+        }
       `}</style>
 
     </div>

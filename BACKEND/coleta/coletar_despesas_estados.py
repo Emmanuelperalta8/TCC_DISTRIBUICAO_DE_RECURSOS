@@ -139,7 +139,10 @@ def carregar_supabase(client, registros: list[dict]):
     BATCH = 200
     total = 0
     for i in range(0, len(registros), BATCH):
-        client.table("fato_despesas_uf").upsert(registros[i:i + BATCH]).execute()
+        client.table("fato_despesas_uf").upsert(
+            registros[i:i + BATCH],
+            on_conflict="ano,sigla_uf",
+        ).execute()
         total += len(registros[i:i + BATCH])
     log.info("  %d registros gravados no Supabase", total)
 
@@ -158,11 +161,28 @@ def main():
     from supabase import create_client
     client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
+    # Busca registros já existentes com seus valores
+    existentes_raw = (
+        client.table("fato_despesas_uf")
+        .select("ano,sigla_uf,despesa_liquidada")
+        .execute()
+        .data
+    )
+    # Chave: (ano, sigla_uf) → valor já salvo (0 = falhou antes, >0 = ok)
+    existentes = {(r["ano"], r["sigla_uf"]): float(r["despesa_liquidada"] or 0)
+                  for r in existentes_raw}
+    log.info("%d registros existem no banco.", len(existentes))
+
     log.info("Coletando despesas por estado/ano (anos %d–%d)...", ANO_INICIO, ANO_FIM)
     registros = []
     for ano in range(ANO_INICIO, ANO_FIM + 1):
-        log.info("▶ Ano %d", ano)
-        for uf, id_ente in IBGE_ESTADOS.items():
+        pendentes = [uf for uf in IBGE_ESTADOS if existentes.get((ano, uf), -1) <= 0]
+        if not pendentes:
+            log.info("▶ Ano %d — completo, pulando.", ano)
+            continue
+        log.info("▶ Ano %d — %d estado(s) pendentes.", ano, len(pendentes))
+        for uf in pendentes:
+            id_ente = IBGE_ESTADOS[uf]
             despesa = buscar_despesas_rreo(id_ente, uf, ano)
             registros.append({
                 "ano":               ano,
@@ -177,6 +197,10 @@ def main():
         "Total: %d registros, %d com despesas > 0",
         len(df), len(com_dados),
     )
+
+    if not registros:
+        log.info("Nenhum registro novo para inserir. Banco já está atualizado.")
+        return
 
     if com_dados.empty:
         log.error("Nenhum dado coletado. Verifique se a API SICONFI está acessível.")

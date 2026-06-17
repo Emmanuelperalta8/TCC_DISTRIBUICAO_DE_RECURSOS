@@ -10,6 +10,8 @@ import {
   LabelList,
   ReferenceLine,
 } from "recharts";
+import { useFormato } from "../contexts/FormatoContext";
+import { fmtBRL, fmtPerCapita, fmtPop } from "../utils/fmt";
 
 const CORES = {
   Norte:          "#0077B6",
@@ -19,29 +21,14 @@ const CORES = {
   "Centro-Oeste": "#C2410C",
 };
 
-const fmtBRL = (v) => {
-  if (v >= 1e9)
-    return `R$ ${(v / 1e9).toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} bi`;
-  if (v >= 1e6)
-    return `R$ ${(v / 1e6).toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} mi`;
-  return `R$ ${Number(v).toLocaleString("pt-BR")}`;
-};
-
-const fmtPerCapita = (v) =>
-  `R$ ${Number(v).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-
-const fmtPop = (v) =>
-  v >= 1e6
-    ? `${(v / 1e6).toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} mi hab.`
-    : `${Number(v).toLocaleString("pt-BR")} hab.`;
-
-const TooltipTotal = ({ active, payload }) => {
+function TooltipTotal({ active, payload }) {
+  const { detalhe } = useFormato();
   if (!active || !payload?.length) return null;
   const d = payload[0].payload;
   return (
     <div className="tt">
       <div className="tt-label">{d.regiao}</div>
-      <div className="tt-value">{fmtBRL(d.valor_total)}</div>
+      <div className="tt-value">{fmtBRL(d.valor_total, detalhe)}</div>
       <div className="tt-detail">{d.pct.toFixed(1)}% do total nacional</div>
       {d.populacao > 0 && (
         <div className="tt-detail">{fmtPop(d.populacao)}</div>
@@ -51,9 +38,9 @@ const TooltipTotal = ({ active, payload }) => {
       )}
     </div>
   );
-};
+}
 
-const TooltipPerCapita = ({ active, payload, mediaGeral }) => {
+function TooltipPerCapita({ active, payload, mediaGeral }) {
   if (!active || !payload?.length) return null;
   const d = payload[0].payload;
   const desvio = mediaGeral > 0
@@ -78,14 +65,13 @@ const TooltipPerCapita = ({ active, payload, mediaGeral }) => {
       )}
     </div>
   );
-};
+}
 
 export default function GraficoRegioes({ regioes, anoSel, height = 230 }) {
   const [vista, setVista] = useState("total");
 
   const totalGeral = regioes.reduce((s, r) => s + (r.valor_total || 0), 0);
   const popGeral   = regioes.reduce((s, r) => s + (r.populacao  || 0), 0);
-  // Média per capita ponderada nacional
   const mediaGeral = popGeral > 0 ? totalGeral / popGeral : 0;
 
   const dados = regioes

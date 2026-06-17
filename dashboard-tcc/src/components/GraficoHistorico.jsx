@@ -8,25 +8,20 @@ import {
   ResponsiveContainer,
   ReferenceDot,
 } from "recharts";
+import { useFormato } from "../contexts/FormatoContext";
+import { fmtBRL, fmtBRLCompact } from "../utils/fmt";
 
-const fmtBRL = (v) => {
-  if (v >= 1e9)
-    return `R$ ${(v / 1e9).toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 1 })} bi`;
-  if (v >= 1e6)
-    return `R$ ${(v / 1e6).toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 1 })} mi`;
-  return `R$ ${Number(v).toLocaleString("pt-BR")}`;
-};
-
-const TooltipCustom = ({ active, payload, label }) => {
+function TooltipCustom({ active, payload, label }) {
+  const { detalhe } = useFormato();
   if (!active || !payload?.length) return null;
   const v = payload[0]?.value;
   return (
     <div className="tt">
       <div className="tt-label">{label}</div>
-      <div className="tt-value">{fmtBRL(v)}</div>
+      <div className="tt-value">{fmtBRL(v, detalhe)}</div>
     </div>
   );
-};
+}
 
 export default function GraficoHistorico({ historicoTransf, estadoSel = "Todos", height = 230 }) {
   if (!historicoTransf?.length) {
@@ -74,7 +69,7 @@ export default function GraficoHistorico({ historicoTransf, estadoSel = "Todos",
 
       <figure
         role="img"
-        aria-label={`Gráfico de linha: evolução das transferências anuais  ${escopo}. Último ano: ${ultimo?.ano}, valor: ${fmtBRL(ultimo?.total ?? 0)}`}
+        aria-label={`Gráfico de linha: evolução das transferências anuais  ${escopo}. Último ano: ${ultimo?.ano}, valor: ${fmtBRLCompact(ultimo?.total ?? 0)}`}
         style={{ margin: 0 }}
       >
       <ResponsiveContainer width="100%" height={height}>
@@ -94,7 +89,7 @@ export default function GraficoHistorico({ historicoTransf, estadoSel = "Todos",
             tickLine={false}
           />
           <YAxis
-            tickFormatter={fmtBRL}
+            tickFormatter={fmtBRLCompact}
             tick={{ fill: "#7090AA", fontSize: 10, fontFamily: "Nunito" }}
             axisLine={false}
             tickLine={false}

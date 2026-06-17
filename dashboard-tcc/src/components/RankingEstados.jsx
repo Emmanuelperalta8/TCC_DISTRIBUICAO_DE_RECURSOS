@@ -1,3 +1,6 @@
+import { useFormato } from "../contexts/FormatoContext";
+import { fmtBRL, fmtPerCapita, fmtPop } from "../utils/fmt";
+
 const CORES = {
   Norte:          "#0077B6",
   Nordeste:       "#C96A00",
@@ -6,31 +9,15 @@ const CORES = {
   "Centro-Oeste": "#C2410C",
 };
 
-const fmtPerCapita = (v) =>
-  `R$ ${Number(v).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-
-const fmtBRL = (v) => {
-  if (v >= 1e9)
-    return `R$ ${(v / 1e9).toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} bi`;
-  if (v >= 1e6)
-    return `R$ ${(v / 1e6).toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} mi`;
-  return `R$ ${Number(v).toLocaleString("pt-BR")}`;
-};
-
-const fmtPop = (v) =>
-  v >= 1e6
-    ? `${(v / 1e6).toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} mi`
-    : `${Number(v).toLocaleString("pt-BR")}`;
-
 export default function RankingEstados({ dadosCompletos, anoSel, regiaoSel = "Todas" }) {
+  const { detalhe } = useFormato();
+
   const validos = dadosCompletos.filter((d) => d.valor_per_capita > 0);
 
-  // Média ponderada nacional — sempre calculada sobre todos os estados (benchmark)
   const totalNac = validos.reduce((s, d) => s + Number(d.valor_total || 0), 0);
   const popNac   = validos.reduce((s, d) => s + Number(d.populacao || 0), 0);
   const mediaNac = popNac > 0 ? totalNac / popNac : 0;
 
-  // Lista do ranking: filtra por região se selecionada
   const listagem = regiaoSel !== "Todas"
     ? validos.filter((d) => d.regiao === regiaoSel)
     : validos;
@@ -118,7 +105,7 @@ export default function RankingEstados({ dadosCompletos, anoSel, regiaoSel = "To
                 </td>
 
                 <td style={{ textAlign: "right", color: "#7090AA", fontSize: 12 }}>
-                  {fmtBRL(r.valor_total)}
+                  {fmtBRL(r.valor_total, detalhe)}
                 </td>
 
                 <td>

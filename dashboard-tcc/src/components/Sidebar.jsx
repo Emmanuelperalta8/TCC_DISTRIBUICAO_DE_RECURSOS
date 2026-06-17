@@ -1,3 +1,5 @@
+import { useFormato } from "../contexts/FormatoContext";
+
 const REGIOES = ["Todas", "Norte", "Nordeste", "Sudeste", "Sul", "Centro-Oeste"];
 
 const PAGINAS = [
@@ -111,6 +113,7 @@ export default function Sidebar({
   perfil, onSair,
 }) {
   const filtrosAtivos = estadoSel !== "Todos" || regiaoSel !== "Todas";
+  const { detalhe, toggleDetalhe } = useFormato();
 
   return (
     <aside className="sidebar">
@@ -211,6 +214,18 @@ export default function Sidebar({
             Limpar filtros
           </button>
         )}
+
+        <div className="sb-filter-group" style={{ marginTop: 8 }}>
+          <label className="sb-filter-label">Exibição de valores</label>
+          <button
+            className={`sb-fmt-toggle${detalhe ? " ativo" : ""}`}
+            onClick={toggleDetalhe}
+            title={detalhe ? "Modo compacto (ex: R$ 1,5 bi)" : "Modo detalhado (ex: R$ 1.500.000.000,00)"}
+          >
+            <span className="sb-fmt-dot" />
+            {detalhe ? "Valor detalhado" : "Valor compacto"}
+          </button>
+        </div>
       </div>
 
       {/* ── Footer ────────────────────────── */}
