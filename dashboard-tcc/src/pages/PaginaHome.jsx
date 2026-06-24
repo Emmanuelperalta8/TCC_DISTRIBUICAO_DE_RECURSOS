@@ -209,7 +209,7 @@ export default function PaginaHome({ setPagina }) {
   const aba = ABAS.find((a) => a.id === sel);
 
   return (
-    <div style={{ maxWidth: 980, margin: "0 auto" }}>
+    <div className="page">
 
       {/* ── Hero ──────────────────────────────────────── */}
       <div style={{
@@ -237,7 +237,7 @@ export default function PaginaHome({ setPagina }) {
           <h1 style={{ fontSize: 26, fontWeight: 800, lineHeight: 1.25, marginBottom: 10 }}>
             Dashboard de Distribuição de Recursos Federais
           </h1>
-          <p style={{ fontSize: 13.5, opacity: 0.85, lineHeight: 1.7, marginBottom: 28 }}>
+          <p style={{ fontSize: 13.5, opacity: 0.85, lineHeight: 1.7, marginBottom: 28, textAlign: "justify" }}>
             Esse dashboard foi desenvolvido como TCC em Engenharia de Software na ULBRA Palmas.
             A ideia foi cruzar dados públicos do Tesouro Nacional com estimativas do IBGE para
             entender como o dinheiro federal chega nos estados e se essa divisão é proporcional
@@ -389,7 +389,7 @@ export default function PaginaHome({ setPagina }) {
                 <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>
                   O que é
                 </div>
-                <p style={{ fontSize: 13.5, color: "var(--text-2)", lineHeight: 1.7 }}>{aba.descricao}</p>
+                <p style={{ fontSize: 13.5, color: "var(--text-2)", lineHeight: 1.7, textAlign: "justify" }}>{aba.descricao}</p>
               </div>
 
               {/* período */}
@@ -426,7 +426,7 @@ export default function PaginaHome({ setPagina }) {
                       borderRadius: 10, padding: "12px 14px",
                     }}>
                       <div style={{ fontSize: 13, fontWeight: 700, color: aba.cor, marginBottom: 4 }}>{f.nome}</div>
-                      <div style={{ fontSize: 12, color: "var(--text-2)", lineHeight: 1.6 }}>{f.detalhe}</div>
+                      <div style={{ fontSize: 12, color: "var(--text-2)", lineHeight: 1.6, textAlign: "justify" }}>{f.detalhe}</div>
                     </div>
                   ))}
                 </div>
@@ -455,7 +455,7 @@ export default function PaginaHome({ setPagina }) {
                       }}>
                         {c.formula}
                       </div>
-                      <div style={{ fontSize: 11.5, color: "var(--text-2)", lineHeight: 1.5 }}>{c.desc}</div>
+                      <div style={{ fontSize: 11.5, color: "var(--text-2)", lineHeight: 1.5, textAlign: "justify" }}>{c.desc}</div>
                     </div>
                   ))}
                 </div>
@@ -475,7 +475,7 @@ export default function PaginaHome({ setPagina }) {
                         display: "flex", alignItems: "center", justifyContent: "center",
                         fontSize: 10, fontWeight: 800, flexShrink: 0, marginTop: 1,
                       }}>{i + 1}</div>
-                      <p style={{ fontSize: 12.5, color: "var(--text-2)", lineHeight: 1.6, margin: 0 }}>{t}</p>
+                      <p style={{ fontSize: 12.5, color: "var(--text-2)", lineHeight: 1.6, margin: 0, textAlign: "justify" }}>{t}</p>
                     </div>
                   ))}
                 </div>
@@ -532,7 +532,7 @@ export default function PaginaHome({ setPagina }) {
                 <div style={{ color: "var(--accent)", marginTop: 1, flexShrink: 0 }}><IconCheck /></div>
                 <div style={{ fontSize: 12.5, fontWeight: 700, color: "var(--text)" }}>{n.titulo}</div>
               </div>
-              <div style={{ fontSize: 12, color: "var(--text-2)", lineHeight: 1.6, paddingLeft: 21 }}>{n.texto}</div>
+              <div style={{ fontSize: 12, color: "var(--text-2)", lineHeight: 1.6, paddingLeft: 21, textAlign: "justify" }}>{n.texto}</div>
             </div>
           ))}
         </div>
@@ -557,7 +557,7 @@ export default function PaginaHome({ setPagina }) {
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
         .home-cards {
           display: grid;
-          grid-template-columns: repeat(5, 1fr);
+          grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
           gap: 12px;
         }
         .home-panel-body {
@@ -568,17 +568,14 @@ export default function PaginaHome({ setPagina }) {
         }
         .home-notas {
           display: grid;
-          grid-template-columns: repeat(3, 1fr);
+          grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
           gap: 12px;
         }
-        @media (max-width: 860px) {
-          .home-cards { grid-template-columns: repeat(3, 1fr); }
+        @media (max-width: 900px) {
           .home-panel-body { grid-template-columns: 1fr; }
-          .home-notas { grid-template-columns: repeat(2, 1fr); }
         }
-        @media (max-width: 560px) {
+        @media (max-width: 640px) {
           .home-cards { grid-template-columns: repeat(2, 1fr); }
-          .home-notas { grid-template-columns: 1fr; }
         }
       `}</style>
 

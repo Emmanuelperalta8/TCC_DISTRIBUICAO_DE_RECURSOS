@@ -140,28 +140,28 @@ export default function PaginaComparacao({ dadosCompletos, anoSel, loading }) {
 
       {/* ── KPIs ─────────────────────────────── */}
       {temDados && (
-        <div className="kpis" style={{ marginBottom: 24 }}>
-          <div className="kpi">
+        <div className="kpi-grid" style={{ marginBottom: 24 }}>
+          <div className="kpi-card">
             <div className="kpi-label">Total transferido</div>
             <div className="kpi-value">{fmtBRL(totalTransf)}</div>
-            <div className="kpi-sub">{fmtPC(transfPC)} por habitante</div>
+            <div className="kpi-description">{fmtPC(transfPC)} por habitante</div>
           </div>
-          <div className="kpi">
+          <div className="kpi-card">
             <div className="kpi-label">Total despesas liquidadas</div>
             <div className="kpi-value">{fmtBRL(totalDespesa)}</div>
-            <div className="kpi-sub">{fmtPC(despesaPC)} por habitante</div>
+            <div className="kpi-description">{fmtPC(despesaPC)} por habitante</div>
           </div>
-          <div className="kpi">
+          <div className="kpi-card">
             <div className="kpi-label">Índice médio de dependência</div>
             <div className="kpi-value" style={{ color: corDependencia(depMedia) }}>
               {fmtPct(depMedia)}
             </div>
-            <div className="kpi-sub">transferências / despesas totais</div>
+            <div className="kpi-description">transferências / despesas totais</div>
           </div>
-          <div className="kpi">
+          <div className="kpi-card">
             <div className="kpi-label">Estados com dados completos</div>
             <div className="kpi-value">{comDados.length}</div>
-            <div className="kpi-sub">
+            <div className="kpi-description">
               {semDados.length > 0 ? `${semDados.length} aguardando SICONFI` : "todos disponíveis"}
             </div>
           </div>

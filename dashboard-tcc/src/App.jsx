@@ -13,6 +13,7 @@ import PaginaHome from "./pages/PaginaHome";
 import PaginaAdmin from "./pages/PaginaAdmin";
 import PaginaLogin from "./pages/PaginaLogin";
 import PaginaCadastro from "./pages/PaginaCadastro";
+import KPIYearToDate from "./components/KPIYearToDate";
 import "./styles/global.css";
 
 function ErroConexao({ mensagem, onRetry }) {
@@ -119,6 +120,10 @@ function Dashboard() {
           ) : pagina === "tipos" ? (
             <ErrorBoundary>
               <PaginaTipos {...paginaProps} />
+            </ErrorBoundary>
+          ) : pagina === "ytd" ? (
+            <ErrorBoundary>
+              <KPIYearToDate data={dadosFiltrados} />
             </ErrorBoundary>
           ) : (
             <ErrorBoundary>

@@ -32,11 +32,10 @@ export default function RankingEstados({ dadosCompletos, anoSel, regiaoSel = "To
     <div className="card">
       <div className="card-header">
         <div className="card-title">
-          Ranking por transferência per capita — Top 10 · {anoSel}
+          Top 10 — Qual estado recebe mais dinheiro por pessoa? · {anoSel}
         </div>
         <div className="card-sub">
-          Estados com maior valor de transferência federal por habitante · média nacional:{" "}
-          {fmtPerCapita(mediaNac)}
+          Ranking dos estados que recebem mais transferência federal por habitante · Média Brasil: {fmtPerCapita(mediaNac)}
         </div>
       </div>
 

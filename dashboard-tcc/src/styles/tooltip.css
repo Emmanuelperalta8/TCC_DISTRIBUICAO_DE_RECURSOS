@@ -1,0 +1,160 @@
+/* ══════════════════════════════════════════════
+   TOOLTIP — Componente Reutilizável
+   ══════════════════════════════════════════════ */
+
+.tooltip-wrapper {
+  position: relative;
+  display: inline-block;
+  margin: 0;
+  padding: 0;
+}
+
+.tooltip-trigger {
+  /* Reset */
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+
+  /* Estilo */
+  cursor: help;
+  text-decoration: underline dotted 2px #3B82F6;
+  color: #3B82F6;
+  font-weight: inherit;
+
+  /* Transição */
+  transition: color 0.15s ease;
+
+  /* Sem focus ring visual (usa aria-label para acessibilidade) */
+  outline: none;
+}
+
+.tooltip-trigger:hover {
+  color: #1D4ED8;
+}
+
+.tooltip-trigger:focus {
+  outline: 2px solid #3B82F6;
+  outline-offset: 2px;
+}
+
+.tooltip-popup {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1F2937;
+  color: #FFFFFF;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 400;
+  max-width: 220px;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(15, 27, 45, 0.25);
+  white-space: normal;
+  word-wrap: break-word;
+  line-height: 1.5;
+  pointer-events: none; /* Evita hover acidental */
+
+  /* Animação suave */
+  animation: tooltipSlideIn 0.15s ease-out forwards;
+}
+
+/* Posição topo (padrão) */
+.tooltip-popup.tooltip-top {
+  bottom: calc(100% + 8px);
+  top: auto;
+}
+
+/* Posição bottom */
+.tooltip-popup.tooltip-bottom {
+  top: calc(100% + 8px);
+  bottom: auto;
+}
+
+/* Arrow/Pointer */
+.tooltip-arrow {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+}
+
+/* Arrow para posição top */
+.tooltip-popup.tooltip-top .tooltip-arrow {
+  top: auto;
+  bottom: -5px;
+  border-top: 5px solid #1F2937;
+}
+
+/* Arrow para posição bottom */
+.tooltip-popup.tooltip-bottom .tooltip-arrow {
+  top: -5px;
+  bottom: auto;
+  border-bottom: 5px solid #1F2937;
+}
+
+/* Animações */
+@keyframes tooltipSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* Dark mode support (se implementado no futuro) */
+@media (prefers-color-scheme: dark) {
+  .tooltip-popup {
+    background: #0F1B2D;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  }
+
+  .tooltip-popup.tooltip-top .tooltip-arrow {
+    border-top-color: #0F1B2D;
+  }
+
+  .tooltip-popup.tooltip-bottom .tooltip-arrow {
+    border-bottom-color: #0F1B2D;
+  }
+}
+
+/* Mobile — tooltip pode se deslocar para o lado */
+@media (max-width: 640px) {
+  .tooltip-popup {
+    max-width: 180px;
+    font-size: 11px;
+    padding: 8px 12px;
+  }
+
+  .tooltip-arrow {
+    border-left-width: 4px;
+    border-right-width: 4px;
+  }
+
+  .tooltip-popup.tooltip-top .tooltip-arrow {
+    border-top-width: 4px;
+    bottom: -4px;
+  }
+
+  .tooltip-popup.tooltip-bottom .tooltip-arrow {
+    border-bottom-width: 4px;
+    top: -4px;
+  }
+}
+
+/* Redução de movimento — respeita preferência do usuário */
+@media (prefers-reduced-motion: reduce) {
+  .tooltip-popup {
+    animation: none;
+    opacity: 1;
+  }
+}

@@ -1,6 +1,7 @@
 import KPIs from "../components/KPIs";
 import GraficoHistorico from "../components/GraficoHistorico";
 import EstatisticasDescritivas from "../components/EstatisticasDescritivas";
+import AnaliseAvancada from "../components/AnaliseAvancada";
 import BotaoExportarCSV from "../components/BotaoExportarCSV";
 import PageHeader from "../components/PageHeader";
 
@@ -38,6 +39,8 @@ export default function PaginaVisaoGeral({ dadosCompletos, historicoTransf, anoS
       />
 
       <EstatisticasDescritivas dadosCompletos={dadosCompletos} anoSel={anoSel} />
+
+      <AnaliseAvancada dadosCompletos={dadosCompletos} anoSel={anoSel} />
     </div>
   );
 }

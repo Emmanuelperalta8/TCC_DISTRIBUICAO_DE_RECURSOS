@@ -5,6 +5,7 @@ const REGIOES = ["Todas", "Norte", "Nordeste", "Sudeste", "Sul", "Centro-Oeste"]
 const PAGINAS = [
   { id: "home",         label: "Início",                 desc: "Sobre o dashboard" },
   { id: "visao-geral",  label: "Visão Geral",            desc: "KPIs e série histórica" },
+  { id: "ytd",          label: "Year-to-Date",           desc: "Análise YTD com comparações" },
   { id: "regioes",      label: "Por Região",             desc: "Distribuição regional" },
   { id: "estados",      label: "Por Estado",             desc: "Per capita e ranking" },
   { id: "tipos",        label: "Tipos de Repasse",       desc: "Modalidades de transferência" },
@@ -93,9 +94,19 @@ function IconScale() {
   );
 }
 
+function IconTrendingUp() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+      <polyline points="17 6 23 6 23 12"/>
+    </svg>
+  );
+}
+
 const ICONS = {
   "home":        IconHome,
   "visao-geral": IconGrid,
+  "ytd":         IconTrendingUp,
   "regioes":     IconGlobe,
   "estados":     IconBar,
   "tipos":       IconList,
