@@ -57,17 +57,14 @@ ESTADOS = [
     "RJ","RN","RO","RR","RS","SC","SE","SP","TO"
 ]
 
-# Transferências a excluir da análise estadual:
-#   ICMS/IPVA/ITCMD = contribuições do estado AO FUNDEB (saídas, não entradas)
-#   FPM             = Fundo de Participação dos Municípios (destino: municípios)
-#   ITR             = 50% vai ao município do imóvel (não ao estado)
-#   Ajustes contábeis sem repasse efetivo
-TIPOS_EXCLUIR = {
-    "ICMS", "IPVA", "ITCMD",
-    "FPM",
-    "ITR",
-    "AJUSTE FUNDEB VAAR", "COUN VAAR",
-}
+# O CSV traz, para cada "Item transferência" (FPE, IPI-EXP, FPM, ICMS, ITR, etc.),
+# uma ou mais linhas por DESTINO (coluna "Transferência"): o valor que efetivamente
+# chega ao caixa do estado (destino = FPE, IPI-Exp, IOF-Ouro, Royalties, LC176/2020...)
+# e/ou a parcela retida constitucionalmente para o FUNDEB (destino = FUNDEB).
+# Itens como FPM, ICMS, IPVA, ITCMD, ITR e COUN VAAF/VAAR/VAAT só têm linha com
+# destino = FUNDEB (nunca chegam ao estado). Por isso o filtro correto é pelo
+# destino, não pelo nome do item — excluímos qualquer linha com destino FUNDEB.
+DESTINO_EXCLUIR = "FUNDEB"
 
 # Valor máximo razoável por estado/mês (R$ 50 bilhões)
 VALOR_MAX_POR_ESTADO = 50_000_000_000
@@ -114,14 +111,15 @@ def processar_csv(df: pd.DataFrame, ano: int) -> pd.DataFrame:
 
     df.columns = df.columns.str.strip()
 
-    col_uf   = next((c for c in df.columns if c.strip().upper() == "UF"), None)
-    col_dec1 = next((c for c in df.columns if "1" in c and "ec" in c.lower()), None)
-    col_dec2 = next((c for c in df.columns if "2" in c and "ec" in c.lower()), None)
-    col_dec3 = next((c for c in df.columns if "3" in c and "ec" in c.lower()), None)
-    col_item = next((c for c in df.columns if "item" in c.lower()), None)
+    col_uf    = next((c for c in df.columns if c.strip().upper() == "UF"), None)
+    col_dec1  = next((c for c in df.columns if "1" in c and "ec" in c.lower()), None)
+    col_dec2  = next((c for c in df.columns if "2" in c and "ec" in c.lower()), None)
+    col_dec3  = next((c for c in df.columns if "3" in c and "ec" in c.lower()), None)
+    col_item  = next((c for c in df.columns if "item" in c.lower()), None)
+    col_dest  = next((c for c in df.columns if c.strip().lower() == "transferência"), None)
 
-    if not col_uf or not col_item:
-        log.warning("CSV de %d sem colunas UF/item esperadas. Colunas: %s", ano, list(df.columns))
+    if not col_uf or not col_item or not col_dest:
+        log.warning("CSV de %d sem colunas UF/item/destino esperadas. Colunas: %s", ano, list(df.columns))
         return pd.DataFrame()
 
     df[col_uf] = df[col_uf].astype(str).str.strip().str.upper()
@@ -131,7 +129,8 @@ def processar_csv(df: pd.DataFrame, ano: int) -> pd.DataFrame:
         return pd.DataFrame()
 
     df[col_item] = df[col_item].astype(str).str.strip()
-    df = df[~df[col_item].isin(TIPOS_EXCLUIR)].copy()
+    df[col_dest] = df[col_dest].astype(str).str.strip()
+    df = df[df[col_dest].str.upper() != DESTINO_EXCLUIR].copy()
 
     if df.empty:
         return pd.DataFrame()
