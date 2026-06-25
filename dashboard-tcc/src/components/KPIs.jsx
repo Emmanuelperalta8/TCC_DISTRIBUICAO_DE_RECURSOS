@@ -24,11 +24,38 @@ export default function KPIs({ dadosCompletos, anoSel, estadoSel }) {
   const totalTransf = dadosCompletos.reduce((s, r) => s + Number(r.valor_total || 0), 0);
   const perCapita   = popTotal > 0 ? totalTransf / popTotal : 0;
 
+  const escopo = estadoSel !== "Todos" ? estadoSel : "Brasil";
+
+  // Com um único estado selecionado, "maior/menor per capita" não fazem
+  // sentido (sobra um só estado para comparar com ele mesmo) — mostra os
+  // três números diretos: valor transferido, habitantes e a divisão entre eles.
+  if (estadoSel !== "Todos") {
+    return (
+      <div className={styles.kpis} style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
+        <div className={styles.kpi} style={{ "--kpi-color": "var(--accent)" }}>
+          <div className={styles.label}>Valor transferido</div>
+          <div className={styles.value}>{fmtBRL(totalTransf, detalhe)}</div>
+          <div className={styles.sub}>{escopo} · {anoSel}</div>
+        </div>
+
+        <div className={styles.kpi} style={{ "--kpi-color": "var(--success)" }}>
+          <div className={styles.label}>Habitantes</div>
+          <div className={styles.value}>{fmtPop(popTotal)}</div>
+          <div className={styles.sub}>{escopo} · {anoSel}</div>
+        </div>
+
+        <div className={styles.kpi} style={{ "--kpi-color": "var(--warning)" }}>
+          <div className={styles.label}>Per capita</div>
+          <div className={styles.value}>{fmtPerCapita(perCapita)}</div>
+          <div className={styles.sub}>valor transferido ÷ habitantes</div>
+        </div>
+      </div>
+    );
+  }
+
   const validos = dadosCompletos.filter((d) => d.valor_per_capita > 0);
   const maior   = [...validos].sort((a, b) => b.valor_per_capita - a.valor_per_capita)[0];
   const menor   = [...validos].sort((a, b) => a.valor_per_capita - b.valor_per_capita)[0];
-
-  const escopo = estadoSel !== "Todos" ? estadoSel : "Brasil";
 
   return (
     <div className={styles.kpis}>
