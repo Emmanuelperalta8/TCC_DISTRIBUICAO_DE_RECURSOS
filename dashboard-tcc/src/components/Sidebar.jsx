@@ -1,4 +1,5 @@
 import { useFormato } from "../contexts/FormatoContext";
+import { MESES } from "../utils/meses";
 
 const REGIOES = ["Todas", "Norte", "Nordeste", "Sudeste", "Sul", "Centro-Oeste"];
 
@@ -96,10 +97,11 @@ export default function Sidebar({
   anos, anoSel, setAnoSel,
   estados, estadoSel, setEstadoSel,
   regiaoSel, setRegiaoSel,
+  mesSel, setMesSel,
   onLimpar, loading,
   perfil, onSair,
 }) {
-  const filtrosAtivos = estadoSel !== "Todos" || regiaoSel !== "Todas";
+  const filtrosAtivos = estadoSel !== "Todos" || regiaoSel !== "Todas" || mesSel != null;
   const { detalhe, setDetalhe } = useFormato();
   const naHome = pagina === "home";
 
@@ -154,7 +156,7 @@ export default function Sidebar({
 
         {naHome ? (
           <p className="sb-filter-note">
-            Os filtros de Ano, Região e Estado se aplicam às telas de dados (Visão Geral, Região, Estado).
+            Os filtros de Ano, Mês, Região e Estado se aplicam às telas de dados (Visão Geral, Região, Estado).
           </p>
         ) : (
           <>
@@ -168,6 +170,22 @@ export default function Sidebar({
                 onChange={(e) => setAnoSel(Number(e.target.value))}
               >
                 {anos.map((a) => <option key={a} value={a}>{a}</option>)}
+              </select>
+            </div>
+
+            <div className="sb-filter-group">
+              <label className="sb-filter-label" htmlFor="sb-mes">Mês</label>
+              <select
+                id="sb-mes"
+                className="sb-select"
+                style={{ backgroundImage: CHEVRON_SVG }}
+                value={mesSel ?? ""}
+                onChange={(e) => setMesSel(e.target.value ? Number(e.target.value) : null)}
+              >
+                <option value="">Todos os meses</option>
+                {MESES.map((m) => (
+                  <option key={m.value} value={m.value}>{m.nome}</option>
+                ))}
               </select>
             </div>
 

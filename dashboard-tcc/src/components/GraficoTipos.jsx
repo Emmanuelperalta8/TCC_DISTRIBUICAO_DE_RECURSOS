@@ -11,6 +11,7 @@ import {
 } from "recharts";
 import { useDrillDown } from "../hooks/useDrillDown";
 import GraficoTipoMensal from "./GraficoTipoMensal";
+import { nomeMes } from "../utils/meses";
 
 const CONCEITOS = {
   "FPE":                   "Fundo de Participação dos Estados — repasse constitucional de 21,5% da arrecadação federal de IR e IPI destinado aos 26 estados e ao DF.",
@@ -73,6 +74,7 @@ const truncar = (str, max = 30) =>
 export default function GraficoTipos({
   tiposTransf,
   anoSel,
+  mesSel = null,
   height = 280,
   limit = 10,
   estadoSel = "Todos",
@@ -85,11 +87,13 @@ export default function GraficoTipos({
 
   const { buscarMensalPorTipo } = useDrillDown();
 
-  // Trocar ano/estado/região invalida a série mensal aberta (seria de outro escopo).
+  const periodo = mesSel ? `${nomeMes(mesSel)}/${anoSel}` : anoSel;
+
+  // Trocar ano/mês/estado/região invalida a série mensal aberta (seria de outro escopo).
   useEffect(() => {
     setTipoAberto(null);
     setMensal(null);
-  }, [anoSel, estadoSel, regiaoSel]);
+  }, [anoSel, mesSel, estadoSel, regiaoSel]);
 
   async function handleClickTipo(tipo) {
     if (tipoAberto === tipo) {
@@ -118,7 +122,7 @@ export default function GraficoTipos({
       <div className="card">
         <div className="card-header">
           <div className="card-title">Tipos de transferência</div>
-          <div className="card-sub">Top 10 modalidades · {anoSel}</div>
+          <div className="card-sub">Top 10 modalidades · {periodo}</div>
         </div>
         <div className="empty-state">Sem dados para o período selecionado</div>
       </div>
@@ -145,7 +149,7 @@ export default function GraficoTipos({
       <div className="card-header">
         <div className="card-title">Tipos de transferência</div>
         <div className="card-sub">
-          Top {limit} modalidades · {anoSel} · total: {fmtBRL(total)} · clique numa barra para ver a série mensal
+          Top {limit} modalidades · {periodo} · total: {fmtBRL(total)} · clique numa barra para ver a série mensal
         </div>
       </div>
 

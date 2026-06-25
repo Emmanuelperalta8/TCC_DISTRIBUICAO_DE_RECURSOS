@@ -1,5 +1,6 @@
 import { useFormato } from "../contexts/FormatoContext";
 import { fmtBRL, fmtPerCapita, fmtPop } from "../utils/fmt";
+import IndicadorFontePop from "./IndicadorFontePop";
 
 const CORES = {
   Norte:          "#0077B6",
@@ -80,6 +81,7 @@ export default function RankingEstados({ dadosCompletos, anoSel, regiaoSel = "To
 
                 <td style={{ textAlign: "right", color: "#7090AA", fontSize: 12 }}>
                   {r.populacao > 0 ? fmtPop(r.populacao, detalhe) : "—"}
+                  <IndicadorFontePop fontePop={r.fonte_pop} />
                 </td>
 
                 <td style={{ textAlign: "right" }}>

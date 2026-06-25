@@ -1,6 +1,7 @@
 import GraficoTipos from "../components/GraficoTipos";
 import BotaoExportarCSV from "../components/BotaoExportarCSV";
 import PageHeader from "../components/PageHeader";
+import { nomeMes } from "../utils/meses";
 
 const CONCEITOS = {
   "FPE":                   "Repasse constitucional de 21,5% do IR e IPI destinado aos 26 estados e ao DF.",
@@ -40,8 +41,9 @@ const COLUNAS_EXPORT = [
   { key: "pct",                label: "% do Total" },
 ];
 
-export default function PaginaTipos({ tiposTransf, anoSel, estadoSel, regiaoSel, estados }) {
+export default function PaginaTipos({ tiposTransf, anoSel, mesSel, estadoSel, regiaoSel, estados }) {
   const escopo = estadoSel !== "Todos" ? estadoSel : "Brasil";
+  const periodo = mesSel ? `${nomeMes(mesSel)}/${anoSel}` : anoSel;
   const total = (tiposTransf ?? []).reduce((s, d) => s + Number(d.valor_total), 0);
 
   const dadosOrdenados = [...(tiposTransf ?? [])]
@@ -62,7 +64,7 @@ export default function PaginaTipos({ tiposTransf, anoSel, estadoSel, regiaoSel,
       <PageHeader
         eyebrow="Tipos de Repasse"
         title="Modalidades de Transferência"
-        description={`Principais categorias de transferência federal para ${escopo} em ${anoSel}, ordenadas por volume total. Exibe as 15 maiores modalidades.`}
+        description={`Principais categorias de transferência federal para ${escopo} em ${periodo}, ordenadas por volume total. Exibe as 15 maiores modalidades.`}
         acoes={
           <BotaoExportarCSV
             dados={dadosExport}
@@ -75,6 +77,7 @@ export default function PaginaTipos({ tiposTransf, anoSel, estadoSel, regiaoSel,
       <GraficoTipos
         tiposTransf={tiposTransf}
         anoSel={anoSel}
+        mesSel={mesSel}
         height={560}
         limit={15}
         estadoSel={estadoSel}
@@ -85,7 +88,7 @@ export default function PaginaTipos({ tiposTransf, anoSel, estadoSel, regiaoSel,
       {dadosOrdenados.length > 0 && (
         <div className="card" style={{ marginTop: 16 }}>
           <div className="card-header">
-            <div className="card-title">Detalhamento por modalidade · {anoSel}</div>
+            <div className="card-title">Detalhamento por modalidade · {periodo}</div>
             <div className="card-sub">
               {dadosOrdenados.length} modalidades · total: {fmtBRL(total)}
             </div>

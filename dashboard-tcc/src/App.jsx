@@ -33,11 +33,12 @@ function Dashboard() {
   const [anoSel, setAnoSel] = useState(2025);
   const [estadoSel, setEstadoSel] = useState("Todos");
   const [regiaoSel, setRegiaoSel] = useState("Todas");
+  const [mesSel, setMesSel] = useState(null);
 
   const {
     loading, error, anos, estados,
     dadosCompletos, regioes, historicoTransf, tiposTransf,
-  } = useDados(anoSel, estadoSel, regiaoSel);
+  } = useDados(anoSel, estadoSel, regiaoSel, mesSel);
 
   // Ao carregar os anos disponíveis, ajusta para o mais recente se o padrão não existir
   useEffect(() => {
@@ -67,6 +68,7 @@ function Dashboard() {
     anoSel,
     estadoSel,
     regiaoSel,
+    mesSel,
     loading,
   };
 
@@ -83,7 +85,9 @@ function Dashboard() {
         setEstadoSel={setEstadoSel}
         regiaoSel={regiaoSel}
         setRegiaoSel={setRegiaoSel}
-        onLimpar={() => { setEstadoSel("Todos"); setRegiaoSel("Todas"); }}
+        mesSel={mesSel}
+        setMesSel={setMesSel}
+        onLimpar={() => { setEstadoSel("Todos"); setRegiaoSel("Todas"); setMesSel(null); }}
         loading={loading}
         perfil={perfil}
         onSair={sair}

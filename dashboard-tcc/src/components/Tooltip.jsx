@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useLayoutEffect } from "react";
+import { createPortal } from "react-dom";
 import "../styles/tooltip.css";
 
 /**
@@ -18,26 +19,40 @@ export default function Tooltip({
   posicao = "top", // top, bottom
 }) {
   const [mostrar, setMostrar] = useState(false);
-  const [posicaoFinal, setPosicaoFinal] = useState(posicao);
+  const [coords, setCoords] = useState(null);
   const triggerRef = useRef(null);
   const popupRef = useRef(null);
 
-  // Detectar se tooltip sai da tela
-  useEffect(() => {
-    if (!mostrar || !popupRef.current || !triggerRef.current) return;
+  // Calcula a posição em coordenadas fixas (viewport) via portal, pra não
+  // depender de nenhum ancestral — cards com overflow:hidden (usado pro
+  // ::before colorido) cortavam o popup quando ele era position:absolute
+  // dentro da hierarquia normal.
+  useLayoutEffect(() => {
+    if (!mostrar) {
+      setCoords(null);
+      return;
+    }
+    if (!triggerRef.current || !popupRef.current) return;
 
     const triggerRect = triggerRef.current.getBoundingClientRect();
     const popupRect = popupRef.current.getBoundingClientRect();
+    const margem = 8;
 
-    // Se tooltip sai do topo, colocar embaixo
-    if (popupRect.top < 0 && posicaoFinal === "top") {
-      setPosicaoFinal("bottom");
+    let posicaoFinal = posicao;
+    if (posicaoFinal === "top" && triggerRect.top - popupRect.height - margem < 0) {
+      posicaoFinal = "bottom";
+    } else if (posicaoFinal === "bottom" && triggerRect.bottom + popupRect.height + margem > window.innerHeight) {
+      posicaoFinal = "top";
     }
-    // Se sai do bottom, colocar no topo
-    else if (popupRect.bottom > window.innerHeight && posicaoFinal === "bottom") {
-      setPosicaoFinal("top");
-    }
-  }, [mostrar, posicaoFinal]);
+
+    setCoords({
+      left: triggerRect.left + triggerRect.width / 2,
+      top: posicaoFinal === "top"
+        ? triggerRect.top - popupRect.height - margem
+        : triggerRect.bottom + margem,
+      posicaoFinal,
+    });
+  }, [mostrar, posicao]);
 
   const mostrarTexto = children || `${texto} ?`;
 
@@ -56,16 +71,24 @@ export default function Tooltip({
         {mostrarTexto}
       </button>
 
-      {mostrar && (
+      {mostrar && createPortal(
         <div
           ref={popupRef}
-          className={`tooltip-popup tooltip-${posicaoFinal}`}
+          className={`tooltip-popup tooltip-${coords?.posicaoFinal ?? posicao}`}
           role="tooltip"
           aria-hidden={!mostrar}
+          style={{
+            position: "fixed",
+            top: coords ? coords.top : -9999,
+            left: coords ? coords.left : -9999,
+            bottom: "auto",
+            visibility: coords ? "visible" : "hidden",
+          }}
         >
           <div className="tooltip-content">{explicacao}</div>
           <div className="tooltip-arrow" />
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

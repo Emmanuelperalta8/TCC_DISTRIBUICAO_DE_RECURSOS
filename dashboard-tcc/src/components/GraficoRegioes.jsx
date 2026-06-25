@@ -12,6 +12,7 @@ import {
 } from "recharts";
 import { useFormato } from "../contexts/FormatoContext";
 import { fmtBRL, fmtPerCapita, fmtPop } from "../utils/fmt";
+import { nomeMes } from "../utils/meses";
 import { useDrillDown } from "../hooks/useDrillDown";
 
 const CORES = {
@@ -129,7 +130,7 @@ function ListaDrillDown({ titulo, itens, valorKey, labelKey, corPorItem, onItemC
   );
 }
 
-export default function GraficoRegioes({ regioes, anoSel, height = 230, dadosNacionais = [] }) {
+export default function GraficoRegioes({ regioes, anoSel, mesSel = null, height = 230, dadosNacionais = [] }) {
   const [vista, setVista] = useState("total");
   const [regiaoAberta, setRegiaoAberta] = useState(null);
   const [estadoAberto, setEstadoAberto] = useState(null);
@@ -138,12 +139,14 @@ export default function GraficoRegioes({ regioes, anoSel, height = 230, dadosNac
 
   const { buscarTiposPorEstado } = useDrillDown();
 
-  // Trocar o ano invalida qualquer drill-down aberto (os dados seriam de outro período).
+  const periodo = mesSel ? `${nomeMes(mesSel)}/${anoSel}` : anoSel;
+
+  // Trocar ano ou mês invalida qualquer drill-down aberto (os dados seriam de outro período).
   useEffect(() => {
     setRegiaoAberta(null);
     setEstadoAberto(null);
     setTiposEstado(null);
-  }, [anoSel]);
+  }, [anoSel, mesSel]);
 
   const podeDetalhar = dadosNacionais.length > 0;
 
@@ -163,7 +166,7 @@ export default function GraficoRegioes({ regioes, anoSel, height = 230, dadosNac
     setEstadoAberto(sigla_uf);
     setTiposEstado(null);
     setLoadingTipos(true);
-    const dados = await buscarTiposPorEstado(sigla_uf, anoSel);
+    const dados = await buscarTiposPorEstado(sigla_uf, anoSel, mesSel);
     setTiposEstado(dados);
     setLoadingTipos(false);
   }
@@ -202,7 +205,7 @@ export default function GraficoRegioes({ regioes, anoSel, height = 230, dadosNac
       <div className="card">
         <div className="card-header">
           <div className="card-title">Transferências por região</div>
-          <div className="card-sub">Participação no total nacional · {anoSel}</div>
+          <div className="card-sub">Participação no total nacional · {periodo}</div>
         </div>
         <div className="empty-state">Sem dados disponíveis</div>
       </div>
@@ -216,8 +219,8 @@ export default function GraficoRegioes({ regioes, anoSel, height = 230, dadosNac
           <div className="card-title">Transferências por região</div>
           <div className="card-sub">
             {vista === "total"
-              ? `Participação de cada região no total transferido · ${anoSel}`
-              : `Transferência por habitante por região · ${anoSel} · média: ${fmtPerCapita(mediaGeral)}`}
+              ? `Participação de cada região no total transferido · ${periodo}`
+              : `Transferência por habitante por região · ${periodo} · média: ${fmtPerCapita(mediaGeral)}`}
             {podeDetalhar && " · clique numa região para detalhar"}
           </div>
         </div>
@@ -247,7 +250,7 @@ export default function GraficoRegioes({ regioes, anoSel, height = 230, dadosNac
 
       <figure
         role="img"
-        aria-label={`Gráfico de barras horizontais: transferências por região em ${anoSel} — visão ${vista === "total" ? "total" : "per capita"}`}
+        aria-label={`Gráfico de barras horizontais: transferências por região em ${periodo} — visão ${vista === "total" ? "total" : "per capita"}`}
         style={{ margin: 0 }}
       >
       <ResponsiveContainer width="100%" height={height}>
@@ -329,7 +332,7 @@ export default function GraficoRegioes({ regioes, anoSel, height = 230, dadosNac
               <div className="empty-state" style={{ height: 80 }}>Carregando tipos de repasse...</div>
             ) : tiposDoEstado.length > 0 ? (
               <ListaDrillDown
-                titulo={`Tipos de repasse — ${estadoAberto} · ${anoSel}`}
+                titulo={`Tipos de repasse — ${estadoAberto} · ${periodo}`}
                 itens={tiposDoEstado}
                 valorKey="valor_total"
                 labelKey="tipo_transferencia"

@@ -1,6 +1,8 @@
 import GraficoRegioes from "../components/GraficoRegioes";
 import BotaoExportarCSV from "../components/BotaoExportarCSV";
 import PageHeader from "../components/PageHeader";
+import IndicadorFontePop from "../components/IndicadorFontePop";
+import { nomeMes } from "../utils/meses";
 
 const fmtBRL = (v) => {
   if (v >= 1e9) return `R$ ${(v / 1e9).toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} bi`;
@@ -31,7 +33,10 @@ const COLUNAS_EXPORT = [
   { key: "pct",              label: "% do Total Nacional" },
 ];
 
-export default function PaginaRegioes({ regioes, anoSel, dadosNacionais }) {
+export default function PaginaRegioes({ regioes, anoSel, mesSel, dadosNacionais }) {
+  const periodo = mesSel ? `${nomeMes(mesSel)}/${anoSel}` : anoSel;
+  // Todos os estados de um mesmo ano compartilham a mesma fonte de população.
+  const fontePop = dadosNacionais?.find((r) => r.fonte_pop)?.fonte_pop;
   const totalGeral = regioes.reduce((s, r) => s + (r.valor_total || 0), 0);
   const popGeral   = regioes.reduce((s, r) => s + (r.populacao  || 0), 0);
   const mediaPC    = popGeral > 0 ? totalGeral / popGeral : 0;
@@ -65,16 +70,16 @@ export default function PaginaRegioes({ regioes, anoSel, dadosNacionais }) {
         }
       />
 
-      <GraficoRegioes regioes={regioes} anoSel={anoSel} height={420} dadosNacionais={dadosNacionais} />
+      <GraficoRegioes regioes={regioes} anoSel={anoSel} mesSel={mesSel} height={420} dadosNacionais={dadosNacionais} />
 
       {/* Tabela resumo por região */}
       <div className="card" style={{ marginTop: 16 }}>
         <div className="card-header">
-          <div className="card-title">Resumo por região · {anoSel}</div>
+          <div className="card-title">Resumo por região · {periodo}</div>
           <div className="card-sub">Média nacional per capita: {fmtPC(mediaPC)}</div>
         </div>
 
-        <table className="ranking" aria-label={`Tabela de transferências por região em ${anoSel}`}>
+        <table className="ranking" aria-label={`Tabela de transferências por região em ${periodo}`}>
           <thead>
             <tr>
               <th>Região</th>
@@ -99,6 +104,7 @@ export default function PaginaRegioes({ regioes, anoSel, dadosNacionais }) {
                   </td>
                   <td style={{ textAlign: "right", color: "var(--text-2)", fontSize: 12 }}>
                     {r.populacao > 0 ? fmtPop(r.populacao) : "—"}
+                    <IndicadorFontePop fontePop={fontePop} />
                   </td>
                   <td style={{ textAlign: "right" }}>
                     <span className="rank-valor">{fmtBRL(r.valor_total)}</span>
