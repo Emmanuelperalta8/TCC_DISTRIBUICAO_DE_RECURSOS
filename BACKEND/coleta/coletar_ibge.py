@@ -149,7 +149,7 @@ def coletar_populacao(df_estados: pd.DataFrame) -> pd.DataFrame:
 # ─────────────────────────────────────────────
 # CARREGAR NO SUPABASE
 # ─────────────────────────────────────────────
-def carregar_supabase(tabela: str, df: pd.DataFrame):
+def carregar_supabase(tabela: str, df: pd.DataFrame, on_conflict: str = None):
     if not SUPABASE_URL or not SUPABASE_KEY:
         log.warning("Supabase não configurado — carga de '%s' ignorada.", tabela)
         return
@@ -160,8 +160,11 @@ def carregar_supabase(tabela: str, df: pd.DataFrame):
         BATCH = 500
         total = 0
         for i in range(0, len(registros), BATCH):
-            client.table(tabela).upsert(registros[i:i+BATCH]).execute()
-            total += len(registros[i:i+BATCH])
+            lote = registros[i:i+BATCH]
+            req = client.table(tabela).upsert(lote, on_conflict=on_conflict) if on_conflict \
+                else client.table(tabela).upsert(lote)
+            req.execute()
+            total += len(lote)
             log.debug("  [%s] %d/%d...", tabela, total, len(registros))
         log.info("  %s: %d registros carregados", tabela, total)
     except Exception as e:
@@ -186,8 +189,8 @@ def main():
     log.info("CSVs salvos em dados_brutos/")
 
     log.info("[3/3] Carregando no Supabase...")
-    carregar_supabase("dim_estado",    df_estados)
-    carregar_supabase("dim_populacao", df_pop)
+    carregar_supabase("dim_estado",    df_estados, on_conflict="sigla_uf")
+    carregar_supabase("dim_populacao", df_pop,     on_conflict="sigla_uf,ano")
 
     log.info("=" * 60)
     log.info("Concluído! dim_estado: %d | dim_populacao: %d", len(df_estados), len(df_pop))

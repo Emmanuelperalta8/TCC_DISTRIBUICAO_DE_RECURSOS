@@ -20,9 +20,10 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 ETAPAS = [
-    ("Coletando Transferências Federais", "coleta/coletar_transferencias.py"),
-    ("Coletando População (IBGE)",         "coletar_populacao_ibge.py"),
-    ("ETL → Supabase",                     "ETL/etl_supabase.py"),
+    ("Coletando Transferências Federais",   "coleta/coletar_transferencias.py"),
+    ("Coletando Estados e População (IBGE)", "coleta/coletar_ibge.py"),
+    ("Coletando Despesas Estaduais (SICONFI)", "coleta/coletar_despesas_estados.py"),
+    ("ETL → Supabase",                       "ETL/etl_supabase.py"),
 ]
 
 

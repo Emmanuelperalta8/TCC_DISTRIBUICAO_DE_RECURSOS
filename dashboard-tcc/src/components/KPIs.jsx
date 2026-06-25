@@ -22,6 +22,7 @@ export default function KPIs({ dadosCompletos, anoSel, estadoSel }) {
 
   const popTotal    = dadosCompletos.reduce((s, r) => s + Number(r.populacao || 0), 0);
   const totalTransf = dadosCompletos.reduce((s, r) => s + Number(r.valor_total || 0), 0);
+  const totalDespesa = dadosCompletos.reduce((s, r) => s + Number(r.despesa_liquidada || 0), 0);
   const perCapita   = popTotal > 0 ? totalTransf / popTotal : 0;
 
   const validos = dadosCompletos.filter((d) => d.valor_per_capita > 0);
@@ -44,6 +45,9 @@ export default function KPIs({ dadosCompletos, anoSel, estadoSel }) {
         <div className={styles.sub}>por habitante · {escopo} · {anoSel}</div>
         <div className={styles.sub} style={{ marginTop: 4 }}>
           Base: {fmtPop(popTotal)}
+        </div>
+        <div className={styles.sub} style={{ marginTop: 4 }}>
+          Despesa total: {fmtBRL(totalDespesa, detalhe)}
         </div>
       </div>
 

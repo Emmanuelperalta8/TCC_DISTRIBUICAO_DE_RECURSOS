@@ -14,11 +14,17 @@ import { fmtBRL, fmtBRLCompact } from "../utils/fmt";
 function TooltipCustom({ active, payload, label }) {
   const { detalhe } = useFormato();
   if (!active || !payload?.length) return null;
-  const v = payload[0]?.value;
+  const transf = payload.find((p) => p.dataKey === "total");
+  const desp   = payload.find((p) => p.dataKey === "despesa");
   return (
     <div className="tt">
       <div className="tt-label">{label}</div>
-      <div className="tt-value">{fmtBRL(v, detalhe)}</div>
+      <div className="tt-detail" style={{ color: "#1351B4", fontWeight: 700 }}>
+        Transferência recebida: {fmtBRL(transf?.value ?? 0, detalhe)}
+      </div>
+      <div className="tt-detail" style={{ color: "#6B21A8", fontWeight: 700 }}>
+        Despesa: {fmtBRL(desp?.value ?? 0, detalhe)}
+      </div>
     </div>
   );
 }
@@ -50,7 +56,7 @@ export default function GraficoHistorico({ historicoTransf, estadoSel = "Todos",
       <div className="card-header">
         <div className="card-title">Evolução das transferências  {escopo}</div>
         <div className="card-sub">
-          Total anual transferido pela União · fonte: Tesouro Nacional
+          Transferência recebida vs. despesa · fonte: Tesouro Nacional / SICONFI
           {variacao !== null && (
             <span
               style={{
@@ -69,7 +75,7 @@ export default function GraficoHistorico({ historicoTransf, estadoSel = "Todos",
 
       <figure
         role="img"
-        aria-label={`Gráfico de linha: evolução das transferências anuais  ${escopo}. Último ano: ${ultimo?.ano}, valor: ${fmtBRLCompact(ultimo?.total ?? 0)}`}
+        aria-label={`Gráfico de linha: evolução das transferências e despesas anuais  ${escopo}. Último ano: ${ultimo?.ano}, transferência: ${fmtBRLCompact(ultimo?.total ?? 0)}, despesa: ${fmtBRLCompact(ultimo?.despesa ?? 0)}`}
         style={{ margin: 0 }}
       >
       <ResponsiveContainer width="100%" height={height}>
@@ -99,10 +105,21 @@ export default function GraficoHistorico({ historicoTransf, estadoSel = "Todos",
           <Line
             type="monotone"
             dataKey="total"
+            name="Transferência recebida"
             stroke="#1351B4"
             strokeWidth={2}
             dot={false}
             activeDot={{ r: 4, fill: "#1351B4", strokeWidth: 0 }}
+          />
+          <Line
+            type="monotone"
+            dataKey="despesa"
+            name="Despesa"
+            stroke="#6B21A8"
+            strokeWidth={2}
+            strokeDasharray="5 3"
+            dot={false}
+            activeDot={{ r: 4, fill: "#6B21A8", strokeWidth: 0 }}
           />
           {ultimo && (
             <ReferenceDot
@@ -114,9 +131,28 @@ export default function GraficoHistorico({ historicoTransf, estadoSel = "Todos",
               strokeWidth={2}
             />
           )}
+          {ultimo?.despesa > 0 && (
+            <ReferenceDot
+              x={ultimo.ano}
+              y={ultimo.despesa}
+              r={4}
+              fill="#6B21A8"
+              stroke="#FFFFFF"
+              strokeWidth={2}
+            />
+          )}
         </LineChart>
       </ResponsiveContainer>
       </figure>
+
+      <div className="legend-row">
+        <span className="legend-item">
+          <span className="legend-dot" style={{ background: "#1351B4" }} />Transferência recebida
+        </span>
+        <span className="legend-item">
+          <span className="legend-dot" style={{ background: "#6B21A8" }} />Despesa
+        </span>
+      </div>
     </div>
   );
 }

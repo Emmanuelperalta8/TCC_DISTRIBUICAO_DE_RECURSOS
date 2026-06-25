@@ -4,7 +4,7 @@ import { useAuth } from "../contexts/AuthContext";
 
 const supabaseAdmin = createClient(
   import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_SERVICE_KEY
+  import.meta.env.VITE_SUPABASE_ANON_KEY
 );
 
 const FORM_VAZIO = { nome_usuario: "", email: "", senha: "", role: "usuario" };

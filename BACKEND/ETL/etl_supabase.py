@@ -14,10 +14,15 @@ Etapas:
 
 import logging
 import os
+import sys
 from datetime import datetime
 
 import pandas as pd
 from dotenv import load_dotenv
+
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
 
 load_dotenv()
 
@@ -85,7 +90,7 @@ def carregar_populacao() -> pd.DataFrame:
     client = _supabase_client()
     registros = _fetch_all(client, "dim_populacao", "sigla_uf,ano,populacao")
     if not registros:
-        raise RuntimeError("Sem dados de população. Execute primeiro: python coletar_populacao_ibge.py")
+        raise RuntimeError("Sem dados de população. Execute primeiro: python coleta/coletar_ibge.py")
     df = pd.DataFrame(registros)
     log.info("  População: %d registros (Supabase)", len(df))
     return df
@@ -517,8 +522,14 @@ def main():
         # dim_estado já existe com capital/id_ibge — pular para não conflitar
         log.info("  dim_estado: já existe no Supabase, pulando.")
 
-        carregar_supabase("dim_tempo", dim_tempo)
-        carregar_supabase("dim_tipo_transferencia", dim_tipo)
+        # id_tempo/id_tipo são índices recalculados a cada execução (não são
+        # estáveis entre runs) — não enviamos para não colidir com a PK real do banco.
+        carregar_supabase("dim_tempo", dim_tempo.drop(columns=["id_tempo"]), on_conflict="ano")
+        carregar_supabase(
+            "dim_tipo_transferencia",
+            dim_tipo.drop(columns=["id_tipo"]),
+            on_conflict="tipo_transferencia",
+        )
 
         # fato_transferencias: atualizar apenas populacao e valor_per_capita
         fato_slim = fato[["sigla_uf", "ano", "tipo_transferencia",

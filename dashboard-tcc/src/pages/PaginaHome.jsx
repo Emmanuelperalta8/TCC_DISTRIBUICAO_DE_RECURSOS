@@ -203,6 +203,15 @@ function IconCheck() {
   );
 }
 
+function IconChevron({ up = false }) {
+  return (
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+      style={{ transform: up ? "rotate(180deg)" : "none" }}>
+      <polyline points="6 9 12 15 18 9"/>
+    </svg>
+  );
+}
+
 export default function PaginaHome({ setPagina }) {
   const [sel, setSel] = useState(null);
 
@@ -237,7 +246,7 @@ export default function PaginaHome({ setPagina }) {
           <h1 style={{ fontSize: 26, fontWeight: 800, lineHeight: 1.25, marginBottom: 10 }}>
             Dashboard de Distribuição de Recursos Federais
           </h1>
-          <p style={{ fontSize: 13.5, opacity: 0.85, lineHeight: 1.7, marginBottom: 28, textAlign: "justify" }}>
+          <p style={{ fontSize: 13.5, color: "rgba(255,255,255,0.93)", lineHeight: 1.7, marginBottom: 28, textAlign: "justify", maxWidth: 720 }}>
             Esse dashboard foi desenvolvido como TCC em Engenharia de Software na ULBRA Palmas.
             A ideia foi cruzar dados públicos do Tesouro Nacional com estimativas do IBGE para
             entender como o dinheiro federal chega nos estados e se essa divisão é proporcional
@@ -272,6 +281,8 @@ export default function PaginaHome({ setPagina }) {
         <div className="home-cards">
           {ABAS.map((a) => {
             const ativo = sel === a.id;
+            const corNeutra = "#1351B4";
+            const bgNeutro = "#EFF4FF";
             return (
               <button
                 key={a.id}
@@ -286,17 +297,20 @@ export default function PaginaHome({ setPagina }) {
                   transition: "all 0.18s",
                   position: "relative",
                   color: ativo ? "#fff" : "var(--text)",
+                  boxShadow: "none",
                 }}
                 onMouseEnter={(e) => {
                   if (!ativo) {
-                    e.currentTarget.style.borderColor = a.cor;
-                    e.currentTarget.style.background = a.bg;
+                    e.currentTarget.style.borderColor = corNeutra;
+                    e.currentTarget.style.transform = "translateY(-3px)";
+                    e.currentTarget.style.boxShadow = "0 8px 18px rgba(15, 27, 45, 0.10)";
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (!ativo) {
                     e.currentTarget.style.borderColor = "var(--border)";
-                    e.currentTarget.style.background = "var(--surface)";
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = "none";
                   }
                 }}
               >
@@ -311,16 +325,23 @@ export default function PaginaHome({ setPagina }) {
                 )}
                 <div style={{
                   width: 52, height: 52, borderRadius: 14,
-                  background: ativo ? "rgba(255,255,255,0.2)" : a.bg,
+                  background: ativo ? "rgba(255,255,255,0.2)" : bgNeutro,
                   display: "flex", alignItems: "center", justifyContent: "center",
                   margin: "0 auto 12px",
-                  color: ativo ? "#fff" : a.cor,
+                  color: ativo ? "#fff" : corNeutra,
                 }}>
                   <IconeAba id={a.id} size={26} />
                 </div>
                 <div style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 4 }}>{a.label}</div>
                 <div style={{ fontSize: 11, opacity: ativo ? 0.8 : 0, color: ativo ? "#fff" : "var(--text-3)", transition: "opacity 0.15s" }}>
                   {a.tagline}
+                </div>
+                <div style={{
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 4,
+                  fontSize: 10.5, fontWeight: 700, marginTop: 8,
+                  color: ativo ? "rgba(255,255,255,0.85)" : corNeutra,
+                }}>
+                  {ativo ? "Recolher" : "Ver detalhes"} <IconChevron up={ativo} />
                 </div>
               </button>
             );
@@ -510,9 +531,18 @@ export default function PaginaHome({ setPagina }) {
 
       {/* ── Notas metodológicas (compactas) ──────────── */}
       <div style={{ marginTop: 32 }}>
-        <h2 style={{ fontSize: 15, fontWeight: 700, color: "var(--text)", marginBottom: 16, paddingLeft: 12, borderLeft: "3px solid var(--accent)" }}>
-          Escolhas metodológicas
-        </h2>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 16 }}>
+          <h2 style={{ fontSize: 15, fontWeight: 700, color: "var(--text)", paddingLeft: 12, borderLeft: "3px solid var(--accent)", margin: 0 }}>
+            Escolhas metodológicas
+          </h2>
+          <span style={{
+            fontSize: 10, fontWeight: 700, color: "var(--text-3)",
+            background: "var(--surface-2)", borderRadius: 4,
+            padding: "2px 8px", textTransform: "uppercase", letterSpacing: "0.05em",
+          }}>
+            Apenas leitura
+          </span>
+        </div>
         <div className="home-notas">
           {[
             { titulo: "Por que começa em 2016?", texto: "Antes disso os dados no SICONFI não estavam organizados com a estrutura atual do PCASP, então a série histórica ficaria inconsistente." },

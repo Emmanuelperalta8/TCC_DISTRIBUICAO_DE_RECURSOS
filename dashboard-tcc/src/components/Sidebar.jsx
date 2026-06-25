@@ -5,7 +5,6 @@ const REGIOES = ["Todas", "Norte", "Nordeste", "Sudeste", "Sul", "Centro-Oeste"]
 const PAGINAS = [
   { id: "home",         label: "Início",                 desc: "Sobre o dashboard" },
   { id: "visao-geral",  label: "Visão Geral",            desc: "KPIs e série histórica" },
-  { id: "ytd",          label: "Year-to-Date",           desc: "Análise YTD com comparações" },
   { id: "regioes",      label: "Por Região",             desc: "Distribuição regional" },
   { id: "estados",      label: "Por Estado",             desc: "Per capita e ranking" },
   { id: "tipos",        label: "Tipos de Repasse",       desc: "Modalidades de transferência" },
@@ -94,19 +93,9 @@ function IconScale() {
   );
 }
 
-function IconTrendingUp() {
-  return (
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
-      <polyline points="17 6 23 6 23 12"/>
-    </svg>
-  );
-}
-
 const ICONS = {
   "home":        IconHome,
   "visao-geral": IconGrid,
-  "ytd":         IconTrendingUp,
   "regioes":     IconGlobe,
   "estados":     IconBar,
   "tipos":       IconList,
@@ -124,7 +113,8 @@ export default function Sidebar({
   perfil, onSair,
 }) {
   const filtrosAtivos = estadoSel !== "Todos" || regiaoSel !== "Todas";
-  const { detalhe, toggleDetalhe } = useFormato();
+  const { detalhe, setDetalhe } = useFormato();
+  const naHome = pagina === "home";
 
   return (
     <aside className="sidebar">
@@ -175,67 +165,88 @@ export default function Sidebar({
           {loading && <span className="sb-pulse" />}
         </span>
 
-        <div className="sb-filter-group">
-          <label className="sb-filter-label">Ano</label>
-          <select
-            className="sb-select"
-            style={{ backgroundImage: CHEVRON_SVG }}
-            value={anoSel ?? ""}
-            onChange={(e) => setAnoSel(Number(e.target.value))}
-          >
-            {anos.map((a) => <option key={a} value={a}>{a}</option>)}
-          </select>
-        </div>
+        {naHome ? (
+          <p className="sb-filter-note">
+            Os filtros de Ano, Região e Estado se aplicam às telas de dados (Visão Geral, Região, Estado).
+          </p>
+        ) : (
+          <>
+            <div className="sb-filter-group">
+              <label className="sb-filter-label" htmlFor="sb-ano">Ano</label>
+              <select
+                id="sb-ano"
+                className="sb-select"
+                style={{ backgroundImage: CHEVRON_SVG }}
+                value={anoSel ?? ""}
+                onChange={(e) => setAnoSel(Number(e.target.value))}
+              >
+                {anos.map((a) => <option key={a} value={a}>{a}</option>)}
+              </select>
+            </div>
 
-        <div className="sb-filter-group">
-          <label className="sb-filter-label">Região</label>
-          <select
-            className="sb-select"
-            style={{ backgroundImage: CHEVRON_SVG }}
-            value={regiaoSel}
-            onChange={(e) => { setRegiaoSel(e.target.value); setEstadoSel("Todos"); }}
-          >
-            {REGIOES.map((r) => (
-              <option key={r} value={r}>{r === "Todas" ? "Todas as regiões" : r}</option>
-            ))}
-          </select>
-        </div>
+            <div className="sb-filter-group">
+              <label className="sb-filter-label" htmlFor="sb-regiao">Região</label>
+              <select
+                id="sb-regiao"
+                className="sb-select"
+                style={{ backgroundImage: CHEVRON_SVG }}
+                value={regiaoSel}
+                onChange={(e) => { setRegiaoSel(e.target.value); setEstadoSel("Todos"); }}
+              >
+                {REGIOES.map((r) => (
+                  <option key={r} value={r}>{r === "Todas" ? "Todas as regiões" : r}</option>
+                ))}
+              </select>
+            </div>
 
-        <div className="sb-filter-group">
-          <label className="sb-filter-label">Estado</label>
-          <select
-            className="sb-select"
-            style={{ backgroundImage: CHEVRON_SVG }}
-            value={estadoSel}
-            onChange={(e) => setEstadoSel(e.target.value)}
-          >
-            <option value="Todos">Todos os estados</option>
-            {estados
-              .filter((e) => regiaoSel === "Todas" || e.regiao === regiaoSel)
-              .map((e) => (
-                <option key={e.sigla_uf} value={e.sigla_uf}>
-                  {e.sigla_uf} — {e.nome_estado}
-                </option>
-              ))}
-          </select>
-        </div>
+            <div className="sb-filter-group">
+              <label className="sb-filter-label" htmlFor="sb-estado">Estado</label>
+              <select
+                id="sb-estado"
+                className="sb-select"
+                style={{ backgroundImage: CHEVRON_SVG }}
+                value={estadoSel}
+                onChange={(e) => setEstadoSel(e.target.value)}
+              >
+                <option value="Todos">Todos os estados</option>
+                {estados
+                  .filter((e) => regiaoSel === "Todas" || e.regiao === regiaoSel)
+                  .map((e) => (
+                    <option key={e.sigla_uf} value={e.sigla_uf}>
+                      {e.sigla_uf} — {e.nome_estado}
+                    </option>
+                  ))}
+              </select>
+            </div>
 
-        {filtrosAtivos && (
-          <button className="sb-clear-btn" onClick={onLimpar}>
-            Limpar filtros
-          </button>
+            {filtrosAtivos && (
+              <button className="sb-clear-btn" onClick={onLimpar}>
+                Limpar filtros
+              </button>
+            )}
+          </>
         )}
 
-        <div className="sb-filter-group" style={{ marginTop: 8 }}>
-          <label className="sb-filter-label">Exibição de valores</label>
-          <button
-            className={`sb-fmt-toggle${detalhe ? " ativo" : ""}`}
-            onClick={toggleDetalhe}
-            title={detalhe ? "Modo compacto (ex: R$ 1,5 bi)" : "Modo detalhado (ex: R$ 1.500.000.000,00)"}
-          >
-            <span className="sb-fmt-dot" />
-            {detalhe ? "Valor detalhado" : "Valor compacto"}
-          </button>
+        <div className="sb-filter-group" style={{ marginTop: naHome ? 4 : 8 }}>
+          <label className="sb-filter-label" id="sb-exibicao-label">Exibição de valores</label>
+          <div className="sb-fmt-segment" role="group" aria-labelledby="sb-exibicao-label">
+            <button
+              type="button"
+              className={`sb-fmt-option${!detalhe ? " active" : ""}`}
+              onClick={() => setDetalhe(false)}
+              title="Ex: R$ 1,5 bi"
+            >
+              Compacto
+            </button>
+            <button
+              type="button"
+              className={`sb-fmt-option${detalhe ? " active" : ""}`}
+              onClick={() => setDetalhe(true)}
+              title="Ex: R$ 1.500.000.000,00"
+            >
+              Completo
+            </button>
+          </div>
         </div>
       </div>
 
