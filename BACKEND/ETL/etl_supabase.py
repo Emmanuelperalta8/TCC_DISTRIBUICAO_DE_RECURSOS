@@ -543,6 +543,18 @@ def main():
             "agg_por_tipo_ano":    "ano,tipo_transferencia",
             "agg_ranking_estados": "ano,sigla_uf",
         }
+
+        # upsert nunca remove linha — se um tipo/estado deixar de existir entre
+        # uma execução e outra (ex.: filtro de destino mudou e um item antigo
+        # não aparece mais), a linha antiga fica pra sempre como "fantasma".
+        # Por isso limpamos cada tabela de agregação antes de recarregar.
+        from supabase import create_client
+        client = create_client(SUPABASE_URL, SUPABASE_KEY)
+        for nome in agregacoes:
+            tabela = f"agg_{nome}"
+            log.info("  Limpando %s antes de recarregar...", tabela)
+            client.table(tabela).delete().neq("id", 0).execute()
+
         for nome, df in agregacoes.items():
             tabela = f"agg_{nome}"
             carregar_supabase(tabela, df, on_conflict=on_conflict_agg.get(tabela))
