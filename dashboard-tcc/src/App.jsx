@@ -8,7 +8,6 @@ import PaginaVisaoGeral from "./pages/PaginaVisaoGeral";
 import PaginaRegioes from "./pages/PaginaRegioes";
 import PaginaEstados from "./pages/PaginaEstados";
 import PaginaTipos from "./pages/PaginaTipos";
-import PaginaComparacao from "./pages/PaginaComparacao";
 import PaginaHome from "./pages/PaginaHome";
 import PaginaAdmin from "./pages/PaginaAdmin";
 import PaginaLogin from "./pages/PaginaLogin";
@@ -61,6 +60,7 @@ function Dashboard() {
   const paginaProps = {
     dadosCompletos:  dadosFiltrados,
     dadosNacionais:  dadosCompletos,
+    estados,
     regioes,
     historicoTransf,
     tiposTransf,
@@ -116,13 +116,9 @@ function Dashboard() {
             <ErrorBoundary>
               <PaginaEstados {...paginaProps} />
             </ErrorBoundary>
-          ) : pagina === "tipos" ? (
-            <ErrorBoundary>
-              <PaginaTipos {...paginaProps} />
-            </ErrorBoundary>
           ) : (
             <ErrorBoundary>
-              <PaginaComparacao {...paginaProps} />
+              <PaginaTipos {...paginaProps} />
             </ErrorBoundary>
           )}
         </main>

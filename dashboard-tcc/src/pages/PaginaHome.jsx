@@ -117,38 +117,6 @@ const ABAS = [
       "A tabela abaixo traz uma descrição curta de cada tipo e a base legal correspondente.",
     ],
   },
-  {
-    id: "comparacao",
-    label: "Comparação Fiscal",
-    tagline: "Transferências vs. despesas",
-    cor: "#166534",
-    bg: "#F0FDF4",
-    novo: true,
-    resumo: "Quanto das despesas de cada estado é coberto por transferências federais.",
-    descricao: "Essa foi a aba mais trabalhosa. Os dados de despesas exigiram uma coleta separada no SICONFI, usando o RREO (Relatório Resumido da Execução Orçamentária) de cada estado, especificamente o 6º bimestre, que acumula o ano inteiro. Com isso calculei o Índice de Dependência Fiscal: quanto por cento dos gastos do governo estadual vem de repasses federais. Amapá e Roraima costumam passar dos 60%.",
-    fontes: [
-      {
-        nome: "STN/SICONFI - RREO Anexo 1",
-        detalhe: "Relatório Resumido da Execução Orçamentária, 6º bimestre. Conta 'TOTAL DAS DESPESAS (XII)', coluna 'Despesas Liquidadas Até o Bimestre'. API pública do SICONFI.",
-      },
-      {
-        nome: "STN/SICONFI (transferências)",
-        detalhe: "O mesmo conjunto de dados das outras abas, com o total transferido por estado e ano.",
-      },
-    ],
-    periodo: { min: 2016, max: 2025 },
-    calculos: [
-      { formula: "Índice de Dependência = (transferências / despesas liquidadas) × 100", desc: "Percentual das despesas estaduais coberto pelos repasses federais." },
-      { formula: "Despesa per capita = despesas liquidadas / população", desc: "Quanto o governo estadual gastou por habitante naquele ano." },
-      { formula: "Transferência per capita = transferências / população", desc: "Quanto o estado recebeu de repasses federais por habitante." },
-    ],
-    tutorial: [
-      "Na visão 'Per capita' as barras azul (transferências) e roxo (despesas) aparecem lado a lado por estado.",
-      "Na visão 'Dependência Fiscal' as barras ficam coloridas: verde é baixa dependência, âmbar é média e vermelho é alta.",
-      "Estados do Norte e Nordeste costumam ter índice mais alto, pois gastam relativamente pouco com recursos próprios.",
-      "Roraima e Amapá costumam passar dos 60%, o que significa que mais da metade dos seus gastos vem de Brasília.",
-    ],
-  },
 ];
 
 function IconeAba({ id, size = 28 }) {
@@ -546,9 +514,6 @@ export default function PaginaHome({ setPagina }) {
         <div className="home-notas">
           {[
             { titulo: "Por que começa em 2016?", texto: "Antes disso os dados no SICONFI não estavam organizados com a estrutura atual do PCASP, então a série histórica ficaria inconsistente." },
-            { titulo: "Por que vai até 2025?", texto: "O RREO do 6º bimestre (ano completo) é publicado pelos estados em janeiro/fevereiro do ano seguinte. O dado de 2025 já estava disponível quando esse trabalho foi concluído." },
-            { titulo: "O que são Despesas Liquidadas?", texto: "É o estágio em que o serviço foi entregue e a dívida reconhecida, ou seja, gasto real, não só comprometido. É o indicador mais usado pra medir o que um governo efetivamente gastou." },
-            { titulo: "Sobre as despesas intra-orçamentárias", texto: "O total de despesas usa a conta que já consolida tudo (extra e intra-orçamentárias juntas), evitando contar o mesmo gasto duas vezes." },
             { titulo: "Quais transferências estão incluídas?", texto: "Só as constitucionais e legais: FPE, FPM, IPI-Exportação, CIDE, Lei Kandir e Royalties. Convênios e emendas parlamentares ficaram fora do escopo." },
             { titulo: "De onde vem a população?", texto: "Estimativas anuais do IBGE. O ano de 2022 usa o Censo; os demais usam as projeções intercensitárias oficiais." },
           ].map((n) => (

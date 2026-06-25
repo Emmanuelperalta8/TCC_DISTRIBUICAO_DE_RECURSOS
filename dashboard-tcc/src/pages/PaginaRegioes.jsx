@@ -31,7 +31,7 @@ const COLUNAS_EXPORT = [
   { key: "pct",              label: "% do Total Nacional" },
 ];
 
-export default function PaginaRegioes({ regioes, anoSel }) {
+export default function PaginaRegioes({ regioes, anoSel, dadosNacionais }) {
   const totalGeral = regioes.reduce((s, r) => s + (r.valor_total || 0), 0);
   const popGeral   = regioes.reduce((s, r) => s + (r.populacao  || 0), 0);
   const mediaPC    = popGeral > 0 ? totalGeral / popGeral : 0;
@@ -65,7 +65,7 @@ export default function PaginaRegioes({ regioes, anoSel }) {
         }
       />
 
-      <GraficoRegioes regioes={regioes} anoSel={anoSel} height={420} />
+      <GraficoRegioes regioes={regioes} anoSel={anoSel} height={420} dadosNacionais={dadosNacionais} />
 
       {/* Tabela resumo por região */}
       <div className="card" style={{ marginTop: 16 }}>

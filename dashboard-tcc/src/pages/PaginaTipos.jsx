@@ -40,7 +40,7 @@ const COLUNAS_EXPORT = [
   { key: "pct",                label: "% do Total" },
 ];
 
-export default function PaginaTipos({ tiposTransf, anoSel, estadoSel }) {
+export default function PaginaTipos({ tiposTransf, anoSel, estadoSel, regiaoSel, estados }) {
   const escopo = estadoSel !== "Todos" ? estadoSel : "Brasil";
   const total = (tiposTransf ?? []).reduce((s, d) => s + Number(d.valor_total), 0);
 
@@ -77,6 +77,9 @@ export default function PaginaTipos({ tiposTransf, anoSel, estadoSel }) {
         anoSel={anoSel}
         height={560}
         limit={15}
+        estadoSel={estadoSel}
+        regiaoSel={regiaoSel}
+        estados={estados}
       />
 
       {dadosOrdenados.length > 0 && (

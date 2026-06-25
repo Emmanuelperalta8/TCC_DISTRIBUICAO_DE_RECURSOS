@@ -310,3 +310,64 @@ INSERT INTO dim_mes (mes_numero, mes_nome, mes_abrev) VALUES
     (11, 'Novembro', 'NOV'),
     (12, 'Dezembro', 'DEZ')
 ON CONFLICT (mes_numero) DO NOTHING;
+
+-- =============================================
+-- HISTÓRICO MENSAL REAL (coletar_transferencias.py)
+-- Tabela nova e independente de fato_transferencias_mes
+-- (aquela é do pipeline de YTD manual, schema diferente:
+-- mes_referencia DATE, valor_ytd etc. — não usar para isto).
+-- Esta guarda o detalhe mensal vindo direto dos CSVs do CKAN,
+-- mesma fonte e mesmo filtro de destino de fato_transferencias,
+-- só que sem agregar o mês.
+-- =============================================
+CREATE TABLE IF NOT EXISTS fato_transferencias_mensal (
+    id                  BIGSERIAL PRIMARY KEY,
+    ano                 SMALLINT     NOT NULL,
+    mes                 SMALLINT     NOT NULL,
+    sigla_uf            CHAR(2)      NOT NULL,
+    tipo_transferencia  VARCHAR(60)  NOT NULL,
+    valor_transferido   NUMERIC(18, 2) NOT NULL,
+    UNIQUE (sigla_uf, ano, mes, tipo_transferencia)
+);
+
+CREATE INDEX IF NOT EXISTS idx_fato_mensal_ano_mes ON fato_transferencias_mensal (ano, mes);
+CREATE INDEX IF NOT EXISTS idx_fato_mensal_uf      ON fato_transferencias_mensal (sigla_uf);
+
+ALTER TABLE fato_transferencias_mensal ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Leitura pública" ON fato_transferencias_mensal;
+CREATE POLICY "Leitura pública" ON fato_transferencias_mensal FOR SELECT USING (true);
+
+-- VIEWS: agregações mensais por estado e por região, sempre em sincronia
+-- com fato_transferencias_mensal (sem precisar de passo de agregação manual)
+CREATE OR REPLACE VIEW agg_por_estado_mes AS
+SELECT
+    f.ano,
+    f.mes,
+    f.sigla_uf,
+    e.regiao,
+    SUM(f.valor_transferido) AS valor_total
+FROM fato_transferencias_mensal f
+JOIN dim_estado e ON e.sigla_uf = f.sigla_uf
+GROUP BY f.ano, f.mes, f.sigla_uf, e.regiao
+ORDER BY f.ano, f.mes, f.sigla_uf;
+
+CREATE OR REPLACE VIEW agg_por_regiao_mes AS
+SELECT
+    f.ano,
+    f.mes,
+    e.regiao,
+    SUM(f.valor_transferido) AS valor_total
+FROM fato_transferencias_mensal f
+JOIN dim_estado e ON e.sigla_uf = f.sigla_uf
+GROUP BY f.ano, f.mes, e.regiao
+ORDER BY f.ano, f.mes, e.regiao;
+
+CREATE OR REPLACE VIEW agg_por_tipo_mes AS
+SELECT
+    ano,
+    mes,
+    tipo_transferencia,
+    SUM(valor_transferido) AS valor_total
+FROM fato_transferencias_mensal
+GROUP BY ano, mes, tipo_transferencia
+ORDER BY ano, mes, tipo_transferencia;

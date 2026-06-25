@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import {
   BarChart,
   Bar,
@@ -8,6 +9,8 @@ import {
   ResponsiveContainer,
   LabelList,
 } from "recharts";
+import { useDrillDown } from "../hooks/useDrillDown";
+import GraficoTipoMensal from "./GraficoTipoMensal";
 
 const CONCEITOS = {
   "FPE":                   "Fundo de Participação dos Estados — repasse constitucional de 21,5% da arrecadação federal de IR e IPI destinado aos 26 estados e ao DF.",
@@ -67,7 +70,49 @@ const TooltipCustom = ({ active, payload }) => {
 const truncar = (str, max = 30) =>
   str.length > max ? str.slice(0, max - 1) + "…" : str;
 
-export default function GraficoTipos({ tiposTransf, anoSel, height = 280, limit = 10 }) {
+export default function GraficoTipos({
+  tiposTransf,
+  anoSel,
+  height = 280,
+  limit = 10,
+  estadoSel = "Todos",
+  regiaoSel = "Todas",
+  estados = [],
+}) {
+  const [tipoAberto, setTipoAberto] = useState(null);
+  const [mensal, setMensal] = useState(null);
+  const [loadingMensal, setLoadingMensal] = useState(false);
+
+  const { buscarMensalPorTipo } = useDrillDown();
+
+  // Trocar ano/estado/região invalida a série mensal aberta (seria de outro escopo).
+  useEffect(() => {
+    setTipoAberto(null);
+    setMensal(null);
+  }, [anoSel, estadoSel, regiaoSel]);
+
+  async function handleClickTipo(tipo) {
+    if (tipoAberto === tipo) {
+      setTipoAberto(null);
+      setMensal(null);
+      return;
+    }
+    setTipoAberto(tipo);
+    setMensal(null);
+    setLoadingMensal(true);
+
+    const ufsRegiao = regiaoSel !== "Todas"
+      ? estados.filter((e) => e.regiao === regiaoSel).map((e) => e.sigla_uf)
+      : null;
+
+    const dados = await buscarMensalPorTipo(tipo, anoSel, {
+      sigla_uf: estadoSel !== "Todos" ? estadoSel : null,
+      ufsRegiao: estadoSel === "Todos" ? ufsRegiao : null,
+    });
+    setMensal(dados);
+    setLoadingMensal(false);
+  }
+
   if (!tiposTransf?.length) {
     return (
       <div className="card">
@@ -80,6 +125,7 @@ export default function GraficoTipos({ tiposTransf, anoSel, height = 280, limit 
     );
   }
 
+  const escopo = estadoSel !== "Todos" ? estadoSel : regiaoSel !== "Todas" ? regiaoSel : "Brasil";
   const total = tiposTransf.reduce((s, d) => s + Number(d.valor_total), 0);
 
   const dados = tiposTransf
@@ -99,7 +145,7 @@ export default function GraficoTipos({ tiposTransf, anoSel, height = 280, limit 
       <div className="card-header">
         <div className="card-title">Tipos de transferência</div>
         <div className="card-sub">
-          Top 10 modalidades · {anoSel} · total: {fmtBRL(total)}
+          Top {limit} modalidades · {anoSel} · total: {fmtBRL(total)} · clique numa barra para ver a série mensal
         </div>
       </div>
 
@@ -135,7 +181,14 @@ export default function GraficoTipos({ tiposTransf, anoSel, height = 280, limit 
             content={<TooltipCustom />}
             cursor={{ fill: "rgba(19,81,180,0.04)" }}
           />
-          <Bar dataKey="value" fill="#1351B4" radius={[0, 4, 4, 0]} maxBarSize={20}>
+          <Bar
+            dataKey="value"
+            fill="#1351B4"
+            radius={[0, 4, 4, 0]}
+            maxBarSize={20}
+            onClick={(entry) => handleClickTipo(entry.name)}
+            style={{ cursor: "pointer" }}
+          >
             <LabelList
               dataKey="percent"
               position="right"
@@ -147,6 +200,17 @@ export default function GraficoTipos({ tiposTransf, anoSel, height = 280, limit 
           </Bar>
         </BarChart>
       </ResponsiveContainer>
+
+      {tipoAberto && (
+        <GraficoTipoMensal
+          dados={mensal}
+          tipo={tipoAberto}
+          ano={anoSel}
+          escopo={escopo}
+          loading={loadingMensal}
+          onClose={() => { setTipoAberto(null); setMensal(null); }}
+        />
+      )}
     </div>
   );
 }

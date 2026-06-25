@@ -8,7 +8,6 @@ const PAGINAS = [
   { id: "regioes",      label: "Por Região",             desc: "Distribuição regional" },
   { id: "estados",      label: "Por Estado",             desc: "Per capita e ranking" },
   { id: "tipos",        label: "Tipos de Repasse",       desc: "Modalidades de transferência" },
-  { id: "comparacao",   label: "Comparação Fiscal",      desc: "Transferências vs. despesas" },
 ];
 
 function IconUsers() {
@@ -82,24 +81,12 @@ function IconList() {
   );
 }
 
-function IconScale() {
-  return (
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="12" y1="3" x2="12" y2="21"/>
-      <path d="M3 9l9-6 9 6"/>
-      <path d="M6 12l-3 6h6l-3-6z"/>
-      <path d="M18 12l-3 6h6l-3-6z"/>
-    </svg>
-  );
-}
-
 const ICONS = {
   "home":        IconHome,
   "visao-geral": IconGrid,
   "regioes":     IconGlobe,
   "estados":     IconBar,
   "tipos":       IconList,
-  "comparacao":  IconScale,
 };
 
 const CHEVRON_SVG = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`;

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   BarChart,
   Bar,
@@ -12,6 +12,7 @@ import {
 } from "recharts";
 import { useFormato } from "../contexts/FormatoContext";
 import { fmtBRL, fmtPerCapita, fmtPop } from "../utils/fmt";
+import { useDrillDown } from "../hooks/useDrillDown";
 
 const CORES = {
   Norte:          "#0077B6",
@@ -67,8 +68,104 @@ function TooltipPerCapita({ active, payload, mediaGeral }) {
   );
 }
 
-export default function GraficoRegioes({ regioes, anoSel, height = 230 }) {
+// Lista horizontal de barras simples, usada para os dois níveis de
+// drill-down (estados de uma região / tipos de repasse de um estado).
+function ListaDrillDown({ titulo, itens, valorKey, labelKey, corPorItem, onItemClick, itemAtivo }) {
+  const { detalhe } = useFormato();
+  const max = Math.max(...itens.map((i) => i[valorKey] || 0), 1);
+  return (
+    <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid var(--border)" }}>
+      <div style={{
+        fontSize: 11, fontWeight: 700, letterSpacing: "0.08em",
+        color: "var(--text-3)", marginBottom: 8, textTransform: "uppercase",
+      }}>
+        {titulo}
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        {itens.map((item) => {
+          const chave = item[labelKey];
+          const ativo = itemAtivo === chave;
+          return (
+            <button
+              key={chave}
+              onClick={() => onItemClick?.(item)}
+              style={{
+                display: "flex", alignItems: "center", gap: 8,
+                background: ativo ? "var(--surface-2)" : "transparent",
+                border: `1px solid ${ativo ? "var(--accent)" : "var(--border)"}`,
+                borderRadius: 6, padding: "6px 10px", width: "100%",
+                textAlign: "left", cursor: onItemClick ? "pointer" : "default",
+                font: "inherit",
+              }}
+            >
+              <span
+                title={chave}
+                style={{
+                  width: 120, fontSize: 12, fontWeight: 700, color: "var(--text)", flexShrink: 0,
+                  whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                }}
+              >
+                {chave}
+              </span>
+              <div style={{ flex: 1, height: 6, borderRadius: 3, background: "var(--surface-2)", overflow: "hidden" }}>
+                <div style={{
+                  height: "100%",
+                  width: `${((item[valorKey] || 0) / max) * 100}%`,
+                  background: corPorItem ? corPorItem(item) : "var(--accent)",
+                }} />
+              </div>
+              <span style={{
+                fontSize: 11, color: "var(--text-2)", flexShrink: 0, minWidth: 64,
+                textAlign: "right", whiteSpace: "nowrap",
+              }}>
+                {fmtBRL(item[valorKey], detalhe)}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+export default function GraficoRegioes({ regioes, anoSel, height = 230, dadosNacionais = [] }) {
   const [vista, setVista] = useState("total");
+  const [regiaoAberta, setRegiaoAberta] = useState(null);
+  const [estadoAberto, setEstadoAberto] = useState(null);
+  const [tiposEstado, setTiposEstado] = useState(null);
+  const [loadingTipos, setLoadingTipos] = useState(false);
+
+  const { buscarTiposPorEstado } = useDrillDown();
+
+  // Trocar o ano invalida qualquer drill-down aberto (os dados seriam de outro período).
+  useEffect(() => {
+    setRegiaoAberta(null);
+    setEstadoAberto(null);
+    setTiposEstado(null);
+  }, [anoSel]);
+
+  const podeDetalhar = dadosNacionais.length > 0;
+
+  function handleClickRegiao(regiao) {
+    if (!podeDetalhar) return;
+    setEstadoAberto(null);
+    setTiposEstado(null);
+    setRegiaoAberta((atual) => (atual === regiao ? null : regiao));
+  }
+
+  async function handleClickEstado(sigla_uf) {
+    if (estadoAberto === sigla_uf) {
+      setEstadoAberto(null);
+      setTiposEstado(null);
+      return;
+    }
+    setEstadoAberto(sigla_uf);
+    setTiposEstado(null);
+    setLoadingTipos(true);
+    const dados = await buscarTiposPorEstado(sigla_uf, anoSel);
+    setTiposEstado(dados);
+    setLoadingTipos(false);
+  }
 
   const totalGeral = regioes.reduce((s, r) => s + (r.valor_total || 0), 0);
   const popGeral   = regioes.reduce((s, r) => s + (r.populacao  || 0), 0);
@@ -86,6 +183,18 @@ export default function GraficoRegioes({ regioes, anoSel, height = 230 }) {
         ? b.valor_total - a.valor_total
         : b.valor_per_capita - a.valor_per_capita
     );
+
+  const estadosDaRegiao = regiaoAberta
+    ? dadosNacionais
+        .filter((e) => e.regiao === regiaoAberta && e.valor_total > 0)
+        .map((e) => ({ sigla_uf: e.sigla_uf, valor_total: e.valor_total }))
+        .sort((a, b) => b.valor_total - a.valor_total)
+    : [];
+
+  const tiposDoEstado = (tiposEstado || [])
+    .filter((t) => t.valor_total > 0)
+    .slice(0, 8)
+    .map((t) => ({ tipo_transferencia: t.tipo_transferencia, valor_total: t.valor_total }));
 
   if (!dados.length) {
     return (
@@ -108,6 +217,7 @@ export default function GraficoRegioes({ regioes, anoSel, height = 230 }) {
             {vista === "total"
               ? `Participação de cada região no total transferido · ${anoSel}`
               : `Transferência por habitante por região · ${anoSel} · média: ${fmtPerCapita(mediaGeral)}`}
+            {podeDetalhar && " · clique numa região para detalhar"}
           </div>
         </div>
         <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
@@ -175,11 +285,15 @@ export default function GraficoRegioes({ regioes, anoSel, height = 230 }) {
             dataKey={vista === "total" ? "valor_total" : "valor_per_capita"}
             radius={[0, 4, 4, 0]}
             maxBarSize={22}
+            onClick={(entry) => handleClickRegiao(entry.regiao)}
+            style={{ cursor: podeDetalhar ? "pointer" : "default" }}
           >
             {dados.map((entry) => (
               <Cell
                 key={entry.regiao}
                 fill={CORES[entry.regiao] || "#1351B4"}
+                stroke={regiaoAberta === entry.regiao ? "#0B1F3A" : "none"}
+                strokeWidth={regiaoAberta === entry.regiao ? 1 : 0}
               />
             ))}
             <LabelList
@@ -196,6 +310,35 @@ export default function GraficoRegioes({ regioes, anoSel, height = 230 }) {
         </BarChart>
       </ResponsiveContainer>
       </figure>
+
+      {regiaoAberta && (
+        <>
+          <ListaDrillDown
+            titulo={`Estados — ${regiaoAberta} (clique para ver os tipos de repasse)`}
+            itens={estadosDaRegiao}
+            valorKey="valor_total"
+            labelKey="sigla_uf"
+            corPorItem={() => CORES[regiaoAberta] || "var(--accent)"}
+            onItemClick={(item) => handleClickEstado(item.sigla_uf)}
+            itemAtivo={estadoAberto}
+          />
+
+          {estadoAberto && (
+            loadingTipos ? (
+              <div className="empty-state" style={{ height: 80 }}>Carregando tipos de repasse...</div>
+            ) : tiposDoEstado.length > 0 ? (
+              <ListaDrillDown
+                titulo={`Tipos de repasse — ${estadoAberto} · ${anoSel}`}
+                itens={tiposDoEstado}
+                valorKey="valor_total"
+                labelKey="tipo_transferencia"
+              />
+            ) : (
+              <div className="empty-state" style={{ height: 80 }}>Sem dados de tipos de repasse para {estadoAberto}.</div>
+            )
+          )}
+        </>
+      )}
     </div>
   );
 }

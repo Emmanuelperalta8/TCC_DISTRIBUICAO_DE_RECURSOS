@@ -13,7 +13,7 @@ const COLUNAS_EXPORT = [
   { key: "valor_per_capita", label: "Per Capita (R$)" },
 ];
 
-export default function PaginaVisaoGeral({ dadosCompletos, regioes, historicoTransf, anoSel, estadoSel }) {
+export default function PaginaVisaoGeral({ dadosCompletos, dadosNacionais, regioes, historicoTransf, anoSel, estadoSel }) {
   return (
     <div className="page">
       <PageHeader
@@ -37,7 +37,7 @@ export default function PaginaVisaoGeral({ dadosCompletos, regioes, historicoTra
           estadoSel={estadoSel}
           height={320}
         />
-        <GraficoRegioes regioes={regioes} anoSel={anoSel} height={320} />
+        <GraficoRegioes regioes={regioes} anoSel={anoSel} height={320} dadosNacionais={dadosNacionais} />
       </div>
     </div>
   );

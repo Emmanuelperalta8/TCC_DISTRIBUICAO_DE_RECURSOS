@@ -9,10 +9,8 @@ export function useDados(anoSel, estadoSel = "Todos", regiaoSel = "Todas") {
   const [populacao, setPopulacao]             = useState([]);
   const [historicoRaw, setHistoricoRaw]       = useState([]);
   const [aggEstadoAnoRaw, setAggEstadoAnoRaw] = useState([]);
-  const [despesasHistoricoRaw, setDespesasHistoricoRaw] = useState([]);
   const [transf, setTransf]                   = useState([]);
   const [tiposTransf, setTiposTransf]         = useState([]);
-  const [despesasUf, setDespesasUf]           = useState([]);
 
   // Ref para acessar estados dentro do effect sem criar dependência circular
   const estadosRef = useRef([]);
@@ -21,15 +19,12 @@ export function useDados(anoSel, estadoSel = "Todos", regiaoSel = "Todas") {
   useEffect(() => {
     async function init() {
       try {
-        const [anosRes, estadosRes, histPopRes, histTransfRes, histDespesasRes] = await Promise.all([
+        const [anosRes, estadosRes, histPopRes, histTransfRes] = await Promise.all([
           supabase.from("agg_por_estado_ano").select("ano").order("ano"),
           supabase.from("dim_estado").select("*").order("nome_estado"),
           supabase.from("dim_populacao").select("sigla_uf, ano, populacao").order("ano"),
           supabase.from("agg_por_estado_ano")
             .select("ano, sigla_uf, valor_total, populacao, valor_per_capita")
-            .order("ano"),
-          supabase.from("fato_despesas_uf")
-            .select("ano, sigla_uf, despesa_liquidada")
             .order("ano"),
         ]);
 
@@ -48,9 +43,8 @@ export function useDados(anoSel, estadoSel = "Todos", regiaoSel = "Todas") {
           setEstados(estadosRes.data);
           estadosRef.current = estadosRes.data;
         }
-        if (histPopRes.data)      setHistoricoRaw(histPopRes.data);
-        if (histTransfRes.data)   setAggEstadoAnoRaw(histTransfRes.data);
-        if (histDespesasRes.data) setDespesasHistoricoRaw(histDespesasRes.data);
+        if (histPopRes.data)    setHistoricoRaw(histPopRes.data);
+        if (histTransfRes.data) setAggEstadoAnoRaw(histTransfRes.data);
       } catch (err) {
         setError(err.message || "Falha ao conectar com o banco de dados.");
       }
@@ -95,16 +89,13 @@ export function useDados(anoSel, estadoSel = "Todos", regiaoSel = "Todas") {
             .order("valor_total", { ascending: false });
         })();
 
-        const [popRes, transfRes, tiposRes, despesasRes] = await Promise.all([
+        const [popRes, transfRes, tiposRes] = await Promise.all([
           supabase.from("dim_populacao")
             .select("sigla_uf, populacao, fonte")
             .eq("ano", anoSel)
             .order("sigla_uf"),
           supabase.from("agg_por_estado_ano").select("*").eq("ano", anoSel),
           tiposQuery,
-          supabase.from("fato_despesas_uf")
-            .select("sigla_uf, despesa_liquidada")
-            .eq("ano", anoSel),
         ]);
 
         if (popRes.error)    throw new Error(`População: ${popRes.error.message}`);
@@ -113,7 +104,6 @@ export function useDados(anoSel, estadoSel = "Todos", regiaoSel = "Todas") {
 
         if (popRes.data)    setPopulacao(popRes.data);
         if (transfRes.data) setTransf(transfRes.data);
-        if (despesasRes.data) setDespesasUf(despesasRes.data);
 
         if (tiposRes.data) {
           const agrupado = tiposRes.data.reduce((acc, d) => {
@@ -136,47 +126,34 @@ export function useDados(anoSel, estadoSel = "Todos", regiaoSel = "Todas") {
     carregarAno();
   }, [anoSel, estadoSel, regiaoSel]);
 
-  // ── Dados completos por estado (população + transferências + despesas do ano)
+  // ── Dados completos por estado (população + transferências do ano) ──────
   const dadosCompletos = estados.map((estado) => {
     const pop = populacao.find((p) => p.sigla_uf === estado.sigla_uf);
     const t   = transf.find((t)   => t.sigla_uf === estado.sigla_uf);
-    const d   = despesasUf.find((d) => d.sigla_uf === estado.sigla_uf);
     const pop_n = Number(pop?.populacao) || 0;
     const transf_n = Number(t?.valor_total) || 0;
-    const despesa_n = Number(d?.despesa_liquidada) || 0;
     return {
       ...estado,
       populacao:             pop_n,
       fonte_pop:             pop?.fonte || "",
       valor_total:           transf_n,
       valor_per_capita:      Number(t?.valor_per_capita) || 0,
-      despesa_liquidada:     despesa_n,
-      despesa_per_capita:    pop_n > 0 ? despesa_n / pop_n : 0,
-      indice_dependencia:    despesa_n > 0 ? (transf_n / despesa_n) * 100 : 0,
     };
   });
 
   // ── Série histórica filtrada por estado OU região ────────────────────────
   const historicoTransf = (() => {
-    let base, baseDespesas;
+    let base;
     if (estadoSel !== "Todos") {
-      base         = aggEstadoAnoRaw.filter((d) => d.sigla_uf === estadoSel);
-      baseDespesas = despesasHistoricoRaw.filter((d) => d.sigla_uf === estadoSel);
+      base = aggEstadoAnoRaw.filter((d) => d.sigla_uf === estadoSel);
     } else if (regiaoSel !== "Todas") {
       const ufsSet = new Set(
         estados.filter((e) => e.regiao === regiaoSel).map((e) => e.sigla_uf)
       );
-      base         = aggEstadoAnoRaw.filter((d) => ufsSet.has(d.sigla_uf));
-      baseDespesas = despesasHistoricoRaw.filter((d) => ufsSet.has(d.sigla_uf));
+      base = aggEstadoAnoRaw.filter((d) => ufsSet.has(d.sigla_uf));
     } else {
-      base         = aggEstadoAnoRaw;
-      baseDespesas = despesasHistoricoRaw;
+      base = aggEstadoAnoRaw;
     }
-
-    const despesaPorAno = {};
-    baseDespesas.forEach(({ ano, despesa_liquidada }) => {
-      despesaPorAno[ano] = (despesaPorAno[ano] || 0) + (Number(despesa_liquidada) || 0);
-    });
 
     const porAno = {};
     base.forEach(({ ano, valor_total, populacao: pop }) => {
@@ -188,7 +165,6 @@ export function useDados(anoSel, estadoSel = "Todos", regiaoSel = "Todas") {
       .map((d) => ({
         ano:        d.ano,
         total:      d.total,
-        despesa:    despesaPorAno[d.ano] || 0,
         per_capita: d.populacao > 0 ? d.total / d.populacao : 0,
       }))
       .sort((a, b) => a.ano - b.ano);
@@ -226,6 +202,6 @@ export function useDados(anoSel, estadoSel = "Todos", regiaoSel = "Todas") {
     loading, error, anos, estados, populacao,
     dadosCompletos, regioes,
     historicoPop, historicoTransf,
-    tiposTransf, despesasUf,
+    tiposTransf,
   };
 }
