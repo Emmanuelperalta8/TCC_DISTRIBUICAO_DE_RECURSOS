@@ -29,10 +29,21 @@ export function fmtBRLCompact(v) {
 export const fmtPerCapita = (v) =>
   `R$ ${Number(v).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-export const fmtPop = (v) =>
-  Number(v) >= 1e6
-    ? `${(Number(v) / 1e6).toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} mi hab.`
-    : `${Number(v).toLocaleString("pt-BR")} hab.`;
+/**
+ * Formata número de habitantes.
+ *
+ * @param {number} v       - População
+ * @param {boolean} detalhe - false → compacto (1,6 mi hab.); true → número completo
+ */
+export function fmtPop(v, detalhe = false) {
+  const n = Number(v) || 0;
+  if (detalhe) {
+    return `${n.toLocaleString("pt-BR")} hab.`;
+  }
+  return n >= 1e6
+    ? `${(n / 1e6).toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} mi hab.`
+    : `${n.toLocaleString("pt-BR")} hab.`;
+}
 
 export const fmtPct = (v) =>
   `${Number(v).toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`;

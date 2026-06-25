@@ -32,7 +32,7 @@ function TooltipTotal({ active, payload }) {
       <div className="tt-value">{fmtBRL(d.valor_total, detalhe)}</div>
       <div className="tt-detail">{d.pct.toFixed(1)}% do total nacional</div>
       {d.populacao > 0 && (
-        <div className="tt-detail">{fmtPop(d.populacao)}</div>
+        <div className="tt-detail">{fmtPop(d.populacao, detalhe)}</div>
       )}
       {d.valor_per_capita > 0 && (
         <div className="tt-detail">Per capita: {fmtPerCapita(d.valor_per_capita)}</div>
@@ -42,6 +42,7 @@ function TooltipTotal({ active, payload }) {
 }
 
 function TooltipPerCapita({ active, payload, mediaGeral }) {
+  const { detalhe } = useFormato();
   if (!active || !payload?.length) return null;
   const d = payload[0].payload;
   const desvio = mediaGeral > 0
@@ -52,7 +53,7 @@ function TooltipPerCapita({ active, payload, mediaGeral }) {
       <div className="tt-label">{d.regiao}</div>
       <div className="tt-value">{fmtPerCapita(d.valor_per_capita)}</div>
       {d.populacao > 0 && (
-        <div className="tt-detail">{fmtPop(d.populacao)}</div>
+        <div className="tt-detail">{fmtPop(d.populacao, detalhe)}</div>
       )}
       {desvio !== null && (
         <div

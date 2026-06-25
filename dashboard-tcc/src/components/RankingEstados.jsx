@@ -79,7 +79,7 @@ export default function RankingEstados({ dadosCompletos, anoSel, regiaoSel = "To
                 </td>
 
                 <td style={{ textAlign: "right", color: "#7090AA", fontSize: 12 }}>
-                  {r.populacao > 0 ? fmtPop(r.populacao) : "—"}
+                  {r.populacao > 0 ? fmtPop(r.populacao, detalhe) : "—"}
                 </td>
 
                 <td style={{ textAlign: "right" }}>
