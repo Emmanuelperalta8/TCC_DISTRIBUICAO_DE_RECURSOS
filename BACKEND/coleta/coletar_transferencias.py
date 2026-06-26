@@ -35,6 +35,7 @@ Metodologia:
 import logging
 import os
 import time
+from datetime import date
 from io import StringIO
 
 import pandas as pd
@@ -100,7 +101,11 @@ def listar_arquivos_ckan() -> list:
         rec_id = rec.get("id", "") or url
         if "Estado" not in nome or "1997-2015" in nome or "Metadados" in nome or not url:
             continue
-        vistos[rec_id] = {"nome": nome, "url": url}
+        vistos[rec_id] = {
+            "nome": nome,
+            "url": url,
+            "criado_em": rec.get("created") or "",
+        }
 
     arquivos = sorted(vistos.values(), key=lambda x: x["nome"])
     log.info("%d arquivos encontrados", len(arquivos))
@@ -250,6 +255,7 @@ def main():
 
         if not df_proc.empty:
             periodos = sorted(set(zip(df_proc["ano"], df_proc["mes"])))
+            df_proc["_recurso_criado_em"] = arq.get("criado_em", "")
             frames.append(df_proc)
             log.info(
                 "    ✓ R$ %.2fB · período(s) real(is): %s",
@@ -265,8 +271,30 @@ def main():
         log.error("Nenhum dado coletado — abortando carga")
         return
 
+    # O CKAN às vezes republica o mesmo período (ano, mês) sob um recurso novo
+    # — seja com conteúdo byte-a-byte idêntico (duplicata simples) ou com
+    # conteúdo DIFERENTE (retificação: ex. março/2023 saiu em dois recursos
+    # com 296 e 403 linhas). Nos dois casos a fonte de verdade para aquele
+    # período é o recurso criado mais recentemente — nunca a soma das
+    # versões, que dobraria qualquer linha que não seja idêntica entre elas.
+    combinado = pd.concat(frames, ignore_index=True)
+    criado_mais_recente_por_periodo = (
+        combinado.groupby(["ano", "mes"])["_recurso_criado_em"].transform("max")
+    )
+    antes = len(combinado)
+    combinado = combinado[
+        combinado["_recurso_criado_em"] == criado_mais_recente_por_periodo
+    ].copy()
+    if len(combinado) < antes:
+        log.warning(
+            "%d linha(s) descartada(s) de recurso(s) CKAN superado(s) por uma "
+            "republicação mais recente do mesmo período (ano, mês)",
+            antes - len(combinado),
+        )
+    combinado = combinado.drop(columns=["_recurso_criado_em"])
+
     mensal = (
-        pd.concat(frames, ignore_index=True)
+        combinado
         .groupby(["ano", "mes", "sigla_uf", "tipo_transferencia"])["valor_transferido"]
         .sum()
         .reset_index()
@@ -277,6 +305,35 @@ def main():
         .sum()
         .reset_index()
     )
+
+    # Auditoria de completude: a fonte já demonstrou pular a publicação de um
+    # mês inteiro sem republicar depois sob outro nome (confirmado: ago/2020,
+    # ago/2021, out/2022, nov/2023, nov/2024 — nenhum recurso, com qualquer
+    # nome, contém esse período). Sem essa checagem, o pipeline somaria
+    # silenciosamente um total incompleto como se fosse o total real do ano.
+    hoje = date.today()
+    periodos_presentes = set(zip(mensal["ano"], mensal["mes"]))
+    lacunas = []
+    for ano in range(ANO_INICIO, hoje.year + 1):
+        # dados costumam ser publicados com ~1 mês de atraso pela fonte
+        limite_mes = 12 if ano < hoje.year else max(hoje.month - 1, 1)
+        for mes in range(1, limite_mes + 1):
+            if (ano, mes) not in periodos_presentes:
+                lacunas.append((ano, mes))
+
+    if lacunas:
+        log.warning(
+            "%d período(s) (ano, mês) nunca publicado(s) pela fonte CKAN — "
+            "totais desses anos estão INCOMPLETOS: %s",
+            len(lacunas), lacunas,
+        )
+        os.makedirs("dados_processados", exist_ok=True)
+        pd.DataFrame(lacunas, columns=["ano", "mes"]).to_csv(
+            os.path.join("dados_processados", "auditoria_completude_ckan.csv"),
+            index=False,
+        )
+    else:
+        log.info("Auditoria de completude: todos os períodos esperados estão presentes.")
 
     log.info("=" * 60)
     log.info("Total geral coletado: R$ %.1fB (%d linhas mensais, %d linhas anuais)",
