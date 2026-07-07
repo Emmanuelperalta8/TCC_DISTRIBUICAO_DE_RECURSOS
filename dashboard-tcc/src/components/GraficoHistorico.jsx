@@ -8,27 +8,34 @@ import {
   ResponsiveContainer,
   ReferenceDot,
 } from "recharts";
+import { useFormato } from "../contexts/FormatoContext";
+import { fmtBRL, fmtBRLCompact } from "../utils/fmt";
 
-const fmtBRL = (v) => {
-  if (v >= 1e9)
-    return `R$ ${(v / 1e9).toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 1 })} bi`;
-  if (v >= 1e6)
-    return `R$ ${(v / 1e6).toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 1 })} mi`;
-  return `R$ ${Number(v).toLocaleString("pt-BR")}`;
-};
-
-const TooltipCustom = ({ active, payload, label }) => {
+function TooltipCustom({ active, payload, label }) {
+  const { detalhe } = useFormato();
   if (!active || !payload?.length) return null;
-  const v = payload[0]?.value;
+  const transf = payload.find((p) => p.dataKey === "total");
+  if (transf?.value == null) {
+    return (
+      <div className="tt">
+        <div className="tt-label">{label}</div>
+        <div className="tt-detail">Sem dado publicado pela fonte oficial neste período</div>
+      </div>
+    );
+  }
   return (
     <div className="tt">
       <div className="tt-label">{label}</div>
-      <div className="tt-value">{fmtBRL(v)}</div>
+      <div className="tt-detail" style={{ color: "#1351B4", fontWeight: 700 }}>
+        Transferência recebida: {fmtBRL(transf.value, detalhe)}
+      </div>
     </div>
   );
-};
+}
 
-export default function GraficoHistorico({ historicoTransf, estadoSel = "Todos", height = 230 }) {
+export default function GraficoHistorico({ historicoTransf, estadoSel = "Todos", anoSel, mesSel, height = 230 }) {
+  const modoMensal = mesSel != null;
+
   if (!historicoTransf?.length) {
     return (
       <div className="card">
@@ -44,7 +51,7 @@ export default function GraficoHistorico({ historicoTransf, estadoSel = "Todos",
   const ultimo = historicoTransf[historicoTransf.length - 1];
   const penultimo = historicoTransf[historicoTransf.length - 2];
   const variacao =
-    penultimo?.total > 0
+    penultimo?.total > 0 && ultimo?.total != null
       ? ((ultimo.total - penultimo.total) / penultimo.total) * 100
       : null;
 
@@ -53,9 +60,11 @@ export default function GraficoHistorico({ historicoTransf, estadoSel = "Todos",
   return (
     <div className="card">
       <div className="card-header">
-        <div className="card-title">Evolução das transferências — {escopo}</div>
+        <div className="card-title">Evolução das transferências  {escopo}</div>
         <div className="card-sub">
-          Total anual transferido pela União · fonte: Tesouro Nacional
+          {modoMensal
+            ? `Total transferido por mês em ${anoSel} · fonte: Tesouro Nacional`
+            : "Total transferido por ano · fonte: Tesouro Nacional"}
           {variacao !== null && (
             <span
               style={{
@@ -72,6 +81,11 @@ export default function GraficoHistorico({ historicoTransf, estadoSel = "Todos",
         </div>
       </div>
 
+      <figure
+        role="img"
+        aria-label={`Gráfico de linha: evolução das transferências ${modoMensal ? `mensais em ${anoSel}` : "anuais"}  ${escopo}. Último período: ${ultimo?.ano}, transferência: ${fmtBRLCompact(ultimo?.total ?? 0)}`}
+        style={{ margin: 0 }}
+      >
       <ResponsiveContainer width="100%" height={height}>
         <LineChart
           data={historicoTransf}
@@ -89,7 +103,7 @@ export default function GraficoHistorico({ historicoTransf, estadoSel = "Todos",
             tickLine={false}
           />
           <YAxis
-            tickFormatter={fmtBRL}
+            tickFormatter={fmtBRLCompact}
             tick={{ fill: "#7090AA", fontSize: 10, fontFamily: "Nunito" }}
             axisLine={false}
             tickLine={false}
@@ -99,12 +113,14 @@ export default function GraficoHistorico({ historicoTransf, estadoSel = "Todos",
           <Line
             type="monotone"
             dataKey="total"
+            name="Transferência recebida"
             stroke="#1351B4"
             strokeWidth={2}
-            dot={false}
+            dot={modoMensal ? { r: 3, fill: "#1351B4", strokeWidth: 0 } : false}
             activeDot={{ r: 4, fill: "#1351B4", strokeWidth: 0 }}
+            connectNulls={false}
           />
-          {ultimo && (
+          {ultimo?.total != null && (
             <ReferenceDot
               x={ultimo.ano}
               y={ultimo.total}
@@ -116,6 +132,18 @@ export default function GraficoHistorico({ historicoTransf, estadoSel = "Todos",
           )}
         </LineChart>
       </ResponsiveContainer>
+      </figure>
+
+      <div className="legend-row">
+        <span className="legend-item">
+          <span className="legend-dot" style={{ background: "#1351B4" }} />Transferência recebida
+        </span>
+        {modoMensal && (
+          <span className="legend-item" style={{ color: "var(--text-3)" }}>
+            Meses sem ponto não têm dado publicado pela fonte oficial
+          </span>
+        )}
+      </div>
     </div>
   );
 }

@@ -1,0 +1,522 @@
+/**
+ * KPI YTD Styles
+ * Year-to-Date Performance Dashboard
+ *
+ * Todas as cores usam os tokens definidos em styles/global.css.
+ * Seletores de tabela são escopados em .kpi-ytd-container para não
+ * vazar para outras páginas (CSS de componente persiste no <head>
+ * depois de montado).
+ */
+
+/* ==========================================
+   1. CONTAINER PRINCIPAL
+   ========================================== */
+
+.kpi-ytd-container {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+  background: var(--bg);
+  border-radius: 12px;
+  font-family: var(--font-family);
+}
+
+.ytd-header {
+  text-align: center;
+  margin-bottom: 40px;
+  padding: 20px;
+  background: var(--surface);
+  border-radius: 8px;
+  box-shadow: var(--shadow-sm);
+}
+
+.ytd-header h1 {
+  margin: 0 0 10px 0;
+  font-size: 2em;
+  color: var(--text);
+  font-weight: 700;
+}
+
+.ytd-header p {
+  margin: 0;
+  color: var(--text-2);
+  font-size: 0.95em;
+}
+
+/* ==========================================
+   2. SEÇÕES
+   ========================================== */
+
+.kpi-section {
+  margin-bottom: 30px;
+  padding: 25px;
+  background: var(--surface);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.kpi-section h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 1.5em;
+  color: var(--text);
+  border-bottom: 3px solid var(--accent);
+  padding-bottom: 10px;
+}
+
+.kpi-section.critical h2 {
+  border-bottom-color: var(--error);
+}
+
+.kpi-section.comparison h2 {
+  border-bottom-color: var(--warning);
+}
+
+.kpi-section.charts h2 {
+  border-bottom-color: var(--accent);
+}
+
+.kpi-section.regional h2 {
+  border-bottom-color: var(--success);
+}
+
+.kpi-section.types h2 {
+  border-bottom-color: var(--sul);
+}
+
+.kpi-section.alerts h2 {
+  border-bottom-color: var(--warning);
+}
+
+/* ==========================================
+   3. GRID DE KPIs
+   ========================================== */
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 768px) {
+  .kpi-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================
+   4. CARD DE KPI
+   ========================================== */
+
+.kpi-card {
+  padding: 20px;
+  border-radius: 8px;
+  background: var(--surface-2);
+  border-left: 5px solid var(--accent);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent), transparent);
+}
+
+.kpi-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-md);
+}
+
+.kpi-card.success {
+  border-left-color: var(--success);
+  background: var(--success-light);
+}
+
+.kpi-card.success::before {
+  background: linear-gradient(90deg, var(--success), transparent);
+}
+
+.kpi-card.warning {
+  border-left-color: var(--warning);
+  background: var(--warning-light);
+}
+
+.kpi-card.warning::before {
+  background: linear-gradient(90deg, var(--warning), transparent);
+}
+
+.kpi-card.alert {
+  border-left-color: var(--error);
+  background: var(--error-light);
+}
+
+.kpi-card.alert::before {
+  background: linear-gradient(90deg, var(--error), transparent);
+}
+
+.kpi-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.kpi-header h3 {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--text-3);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.status-badge {
+  font-size: 1.2em;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.kpi-value {
+  margin-bottom: 12px;
+}
+
+.kpi-value strong {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.kpi-value .unit {
+  font-size: 0.9em;
+  color: var(--text-3);
+  font-weight: 500;
+}
+
+.kpi-comparison {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1em;
+  font-weight: 600;
+}
+
+.kpi-comparison.positive {
+  color: var(--success);
+}
+
+.kpi-comparison.positive .icon {
+  animation: upArrow 0.5s ease;
+}
+
+.kpi-comparison.negative {
+  color: var(--error);
+}
+
+.kpi-comparison.negative .icon {
+  animation: downArrow 0.5s ease;
+}
+
+@keyframes upArrow {
+  0% { transform: translateY(5px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes downArrow {
+  0% { transform: translateY(-5px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+.subtext {
+  margin: 10px 0 0 0;
+  font-size: 0.85em;
+  color: var(--text-3);
+  line-height: 1.4;
+}
+
+/* ==========================================
+   5. GRÁFICOS
+   ========================================== */
+
+.chart-container {
+  width: 100%;
+  height: 300px;
+  margin-bottom: 20px;
+  padding: 10px;
+  background: var(--surface-2);
+  border-radius: 6px;
+}
+
+/* ==========================================
+   6. TABELAS (escopadas em .kpi-ytd-container)
+   ========================================== */
+
+.regional-grid,
+.types-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  margin-top: 20px;
+}
+
+@media (max-width: 992px) {
+  .regional-grid,
+  .types-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.kpi-ytd-container table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface-2);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.kpi-ytd-container thead {
+  background: var(--accent);
+  color: #fff;
+}
+
+.kpi-ytd-container th {
+  padding: 15px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.9em;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid var(--accent-dim);
+}
+
+.kpi-ytd-container td {
+  padding: 12px 15px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.95em;
+  color: var(--text-2);
+}
+
+.kpi-ytd-container tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+.kpi-ytd-container tbody tr:hover {
+  background-color: var(--accent-dim);
+}
+
+.kpi-ytd-container td.positive {
+  color: var(--success);
+  font-weight: 600;
+}
+
+.kpi-ytd-container td.negative {
+  color: var(--error);
+  font-weight: 600;
+}
+
+.kpi-ytd-container td.neutral {
+  color: var(--warning);
+  font-weight: 600;
+}
+
+/* ==========================================
+   7. ALERTAS
+   ========================================== */
+
+.alerts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.alert {
+  padding: 15px;
+  border-radius: 6px;
+  border-left: 4px solid;
+  font-size: 0.95em;
+  animation: slideIn 0.3s ease-out;
+}
+
+.alert-critical {
+  background: var(--error-light);
+  border-left-color: var(--error);
+  color: var(--error);
+}
+
+.alert-warning {
+  background: var(--warning-light);
+  border-left-color: var(--warning);
+  color: var(--warning);
+}
+
+.alert-info {
+  background: var(--info-light);
+  border-left-color: var(--info);
+  color: var(--info);
+}
+
+.alert-success {
+  background: var(--success-light);
+  border-left-color: var(--success);
+  color: var(--success);
+}
+
+/* ==========================================
+   8. FOOTER
+   ========================================== */
+
+.kpi-section.footer {
+  text-align: center;
+  padding: 15px;
+  background: var(--surface-2);
+  border-top: 2px solid var(--border);
+}
+
+.kpi-section.footer p {
+  margin: 5px 0;
+  color: var(--text-3);
+  font-size: 0.9em;
+}
+
+/* ==========================================
+   9. RESPONSIVIDADE
+   ========================================== */
+
+@media (max-width: 768px) {
+  .kpi-ytd-container {
+    padding: 15px;
+  }
+
+  .ytd-header h1 {
+    font-size: 1.5em;
+  }
+
+  .kpi-section {
+    padding: 15px;
+  }
+
+  .kpi-card {
+    padding: 15px;
+  }
+
+  .regional-grid,
+  .types-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .chart-container {
+    height: 250px;
+  }
+
+  .kpi-ytd-container table {
+    font-size: 0.85em;
+  }
+
+  .kpi-ytd-container th,
+  .kpi-ytd-container td {
+    padding: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .kpi-ytd-container {
+    padding: 10px;
+  }
+
+  .ytd-header {
+    padding: 15px;
+    margin-bottom: 20px;
+  }
+
+  .ytd-header h1 {
+    font-size: 1.2em;
+  }
+
+  .kpi-section {
+    padding: 12px;
+    margin-bottom: 20px;
+  }
+
+  .kpi-section h2 {
+    font-size: 1.2em;
+    margin-bottom: 15px;
+  }
+
+  .kpi-grid {
+    gap: 12px;
+  }
+
+  .kpi-card {
+    padding: 12px;
+  }
+
+  .kpi-comparison {
+    font-size: 0.9em;
+  }
+
+  .kpi-ytd-container table {
+    font-size: 0.8em;
+  }
+
+  .kpi-ytd-container th,
+  .kpi-ytd-container td {
+    padding: 8px;
+  }
+
+  .chart-container {
+    height: 200px;
+  }
+}
+
+/* ==========================================
+   10. IMPRESSÃO
+   ========================================== */
+
+@media print {
+  .kpi-ytd-container {
+    background: white;
+    padding: 0;
+  }
+
+  .kpi-section {
+    page-break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid var(--border);
+    margin-bottom: 20px;
+  }
+
+  .status-badge {
+    display: none;
+  }
+
+  .kpi-ytd-container table {
+    background: white;
+  }
+
+  @page {
+    margin: 1cm;
+  }
+}

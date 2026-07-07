@@ -1,0 +1,333 @@
+/* ════════════════════════════════════════════════════════════════
+   MELHORIAS KPI YTD — Contraste, legibilidade e padrão de design
+════════════════════════════════════════════════════════════════ */
+
+/* ─── Container Principal ─── */
+.kpi-ytd-container {
+  width: 100% !important;
+  max-width: 1400px !important;
+  margin: 0 auto !important;
+  padding: var(--spacing-xl) !important;
+  background: var(--bg) !important;
+  border-radius: var(--radius-lg) !important;
+  font-family: var(--font-family) !important;
+}
+
+/* ─── YTD Header ─── */
+.ytd-header {
+  text-align: center !important;
+  margin-bottom: var(--spacing-3xl) !important;
+  padding: var(--spacing-2xl) !important;
+  background: var(--surface) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-sm) !important;
+  border: 1px solid var(--border) !important;
+}
+
+.ytd-header h1 {
+  margin: 0 0 var(--spacing-lg) 0 !important;
+  font-size: var(--text-3xl) !important;
+  color: var(--text) !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.4px !important;
+}
+
+.ytd-header p {
+  margin: 0 !important;
+  color: var(--text-2) !important;
+  font-size: var(--text-base) !important;
+  line-height: var(--leading-normal) !important;
+}
+
+/* ─── KPI Section ─── */
+.kpi-section {
+  margin-bottom: var(--spacing-2xl) !important;
+  padding: var(--spacing-xl) !important;
+  background: var(--surface) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-xs) !important;
+  border: 1px solid var(--border) !important;
+  animation: slideIn 0.3s ease-out !important;
+}
+
+.kpi-section h2 {
+  margin-top: 0 !important;
+  margin-bottom: var(--spacing-lg) !important;
+  font-size: var(--text-2xl) !important;
+  color: var(--text) !important;
+  font-weight: 800 !important;
+  border-bottom: 3px solid var(--accent) !important;
+  padding-bottom: var(--spacing-lg) !important;
+  line-height: var(--leading-tight) !important;
+}
+
+.kpi-section.critical h2 {
+  border-bottom-color: var(--error) !important;
+}
+
+.kpi-section.comparison h2 {
+  border-bottom-color: var(--warning) !important;
+}
+
+.kpi-section.charts h2 {
+  border-bottom-color: var(--accent) !important;
+}
+
+.kpi-section.regional h2 {
+  border-bottom-color: var(--success) !important;
+}
+
+.kpi-section.types h2 {
+  border-bottom-color: var(--sul) !important;
+}
+
+.kpi-section.alerts h2 {
+  border-bottom-color: var(--warning) !important;
+}
+
+/* ─── KPI Grid ─── */
+.kpi-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)) !important;
+  gap: var(--spacing-xl) !important;
+  margin-bottom: var(--spacing-xl) !important;
+}
+
+@media (max-width: 768px) {
+  .kpi-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ─── KPI Card ─── */
+.kpi-card {
+  padding: var(--spacing-lg) !important;
+  border-radius: var(--radius-lg) !important;
+  background: var(--surface-2) !important;
+  border: 1px solid var(--border) !important;
+  border-left: 5px solid var(--accent) !important;
+  transition: all var(--transition-base) !important;
+  position: relative !important;
+  overflow: hidden !important;
+  min-height: auto !important;
+}
+
+.kpi-card::before {
+  content: '' !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 2px !important;
+  background: linear-gradient(90deg, var(--accent), transparent) !important;
+}
+
+.kpi-card:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: var(--shadow-md) !important;
+  border-color: var(--border-2) !important;
+}
+
+.kpi-card.success {
+  border-left-color: var(--success) !important;
+  background: var(--success-light) !important;
+}
+
+.kpi-card.warning {
+  border-left-color: var(--warning) !important;
+  background: var(--warning-light) !important;
+}
+
+.kpi-card.error {
+  border-left-color: var(--error) !important;
+  background: var(--error-light) !important;
+}
+
+.kpi-card.info {
+  border-left-color: var(--info) !important;
+  background: var(--info-light) !important;
+}
+
+/* ─── KPI Labels ─── */
+.kpi-label {
+  font-size: var(--text-xs) !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.1em !important;
+  color: var(--text-3) !important;
+  margin-bottom: var(--spacing-md) !important;
+  display: block !important;
+}
+
+/* ─── KPI Values ─── */
+.kpi-value {
+  font-size: var(--text-3xl) !important;
+  font-weight: 900 !important;
+  color: var(--text) !important;
+  line-height: var(--leading-tight) !important;
+  margin: var(--spacing-md) 0 !important;
+  letter-spacing: -0.5px !important;
+}
+
+.kpi-description {
+  font-size: var(--text-sm) !important;
+  color: var(--text-2) !important;
+  line-height: var(--leading-normal) !important;
+  margin: var(--spacing-md) 0 0 0 !important;
+}
+
+/* ─── KPI Comparison ─── */
+.kpi-comparison {
+  font-size: var(--text-lg) !important;
+  font-weight: 700 !important;
+  margin-top: var(--spacing-md) !important;
+  padding-top: var(--spacing-md) !important;
+  border-top: 1px solid rgba(0, 0, 0, 0.1) !important;
+}
+
+.kpi-comparison.positive {
+  color: var(--success) !important;
+}
+
+.kpi-comparison.negative {
+  color: var(--error) !important;
+}
+
+.kpi-comparison.neutral {
+  color: var(--text-2) !important;
+}
+
+/* ─── KPI Badges ─── */
+.kpi-badge {
+  display: inline-block !important;
+  padding: var(--spacing-xs) var(--spacing-md) !important;
+  border-radius: var(--radius-sm) !important;
+  font-size: var(--text-xs) !important;
+  font-weight: 700 !important;
+  margin: var(--spacing-sm) 0 0 0 !important;
+}
+
+.kpi-badge.success {
+  background: var(--success-light) !important;
+  color: var(--success) !important;
+}
+
+.kpi-badge.warning {
+  background: var(--warning-light) !important;
+  color: var(--warning) !important;
+}
+
+.kpi-badge.error {
+  background: var(--error-light) !important;
+  color: var(--error) !important;
+}
+
+.kpi-badge.info {
+  background: var(--info-light) !important;
+  color: var(--info) !important;
+}
+
+/* ─── Table Styles (KPI Tables) ─── */
+.kpi-section table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  background: var(--surface) !important;
+  margin-top: var(--spacing-lg) !important;
+}
+
+.kpi-section table th {
+  background: var(--surface-2) !important;
+  padding: var(--spacing-lg) !important;
+  font-size: var(--text-xs) !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.1em !important;
+  color: var(--text-3) !important;
+  border-bottom: 2px solid var(--border-2) !important;
+  text-align: left !important;
+  position: sticky !important;
+  top: 0 !important;
+}
+
+.kpi-section table td {
+  padding: var(--spacing-lg) !important;
+  font-size: var(--text-base) !important;
+  color: var(--text) !important;
+  border-bottom: 1px solid var(--border) !important;
+  line-height: var(--leading-normal) !important;
+}
+
+.kpi-section table tr:hover td {
+  background: var(--surface-3) !important;
+}
+
+.kpi-section table tr:last-child td {
+  border-bottom: none !important;
+}
+
+/* ─── Responsivo ─── */
+@media (max-width: 900px) {
+  .kpi-ytd-container {
+    padding: var(--spacing-lg) !important;
+  }
+
+  .ytd-header {
+    padding: var(--spacing-xl) !important;
+  }
+
+  .ytd-header h1 {
+    font-size: var(--text-2xl) !important;
+  }
+
+  .kpi-section {
+    padding: var(--spacing-lg) !important;
+    margin-bottom: var(--spacing-xl) !important;
+  }
+
+  .kpi-section h2 {
+    font-size: var(--text-xl) !important;
+  }
+
+  .kpi-value {
+    font-size: var(--text-2xl) !important;
+  }
+
+  .kpi-section table th,
+  .kpi-section table td {
+    padding: var(--spacing-md) !important;
+    font-size: var(--text-sm) !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .kpi-ytd-container {
+    padding: var(--spacing-md) !important;
+  }
+
+  .ytd-header {
+    padding: var(--spacing-lg) !important;
+    margin-bottom: var(--spacing-xl) !important;
+  }
+
+  .ytd-header h1 {
+    font-size: var(--text-xl) !important;
+  }
+
+  .kpi-section h2 {
+    font-size: var(--text-lg) !important;
+  }
+
+  .kpi-value {
+    font-size: var(--text-xl) !important;
+  }
+
+  .kpi-grid {
+    gap: var(--spacing-lg) !important;
+  }
+
+  .kpi-section table th,
+  .kpi-section table td {
+    padding: var(--spacing-sm) !important;
+    font-size: var(--text-xs) !important;
+  }
+}

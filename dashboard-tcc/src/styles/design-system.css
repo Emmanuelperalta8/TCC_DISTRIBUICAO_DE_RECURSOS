@@ -1,0 +1,359 @@
+/* ════════════════════════════════════════════════════════════════
+   DESIGN SYSTEM — Padronização de UI/UX
+
+   Este arquivo sobrescreve estilos existentes com boas práticas
+   de acessibilidade, legibilidade e hierarquia visual.
+════════════════════════════════════════════════════════════════ */
+
+/* ─── HEADER (Página) ─── */
+.header {
+  gap: var(--spacing-xl) !important;
+  padding-bottom: var(--spacing-2xl) !important;
+  margin-bottom: var(--spacing-xl) !important;
+}
+
+.header-eyebrow {
+  font-size: var(--text-xs) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.12em !important;
+  margin-bottom: var(--spacing-md) !important;
+}
+
+.header-title {
+  font-size: var(--text-3xl) !important;
+  font-weight: 900 !important;
+  line-height: var(--leading-tight) !important;
+  letter-spacing: -0.4px !important;
+  margin: 0 !important;
+}
+
+.header-sub {
+  font-size: var(--text-base) !important;
+  color: var(--text-2) !important;
+  margin-top: var(--spacing-md) !important;
+  max-width: 560px !important;
+  line-height: var(--leading-loose) !important;
+}
+
+.header-right {
+  gap: var(--spacing-md) !important;
+}
+
+.badge {
+  background: var(--surface-2) !important;
+  border-radius: var(--radius-md) !important;
+  padding: var(--spacing-md) var(--spacing-lg) !important;
+  font-size: var(--text-xs) !important;
+  color: var(--text-3) !important;
+}
+
+.badge strong {
+  color: var(--text) !important;
+  font-weight: 700 !important;
+  display: block !important;
+  margin-bottom: var(--spacing-xs) !important;
+}
+
+/* ─── PAGE HEADER ─── */
+.page-header {
+  gap: var(--spacing-xl) !important;
+  padding-bottom: var(--spacing-2xl) !important;
+  margin-bottom: var(--spacing-2xl) !important;
+}
+
+.page-eyebrow {
+  font-size: var(--text-xs) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.12em !important;
+  margin-bottom: var(--spacing-md) !important;
+}
+
+.page-title {
+  font-size: var(--text-3xl) !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.4px !important;
+  line-height: var(--leading-tight) !important;
+  margin: 0 0 var(--spacing-md) 0 !important;
+}
+
+.page-desc {
+  font-size: var(--text-base) !important;
+  color: var(--text-2) !important;
+  margin: 0 !important;
+  max-width: 600px !important;
+  line-height: var(--leading-loose) !important;
+}
+
+/* ─── FILTROS ─── */
+.filtros {
+  gap: var(--spacing-lg) !important;
+  padding: var(--spacing-lg) !important;
+  margin-bottom: var(--spacing-xl) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-xs) !important;
+}
+
+.filtro-group label {
+  font-size: var(--text-xs) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.1em !important;
+  color: var(--text-3) !important;
+  margin-bottom: var(--spacing-sm) !important;
+}
+
+.filtros select {
+  border-radius: var(--radius-md) !important;
+  padding: var(--spacing-sm) var(--spacing-md) !important;
+  font-family: var(--font-family) !important;
+  font-size: var(--text-base) !important;
+  min-width: 160px !important;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast) !important;
+}
+
+.filtros select:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px var(--accent-light) !important;
+}
+
+/* ─── CARDS ─── */
+.card {
+  border-radius: var(--radius-lg) !important;
+  padding: var(--spacing-lg) !important;
+  box-shadow: var(--shadow-xs) !important;
+  transition: box-shadow var(--transition-fast), border-color var(--transition-fast) !important;
+}
+
+.card:hover {
+  border-color: var(--border-2) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.card-header {
+  margin-bottom: var(--spacing-lg) !important;
+  padding-bottom: var(--spacing-lg) !important;
+  border-bottom: 1px solid var(--border) !important;
+}
+
+.card-header:last-child {
+  border-bottom: none !important;
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+.card-title {
+  font-size: var(--text-lg) !important;
+  font-weight: 700 !important;
+  color: var(--text) !important;
+  line-height: var(--leading-tight) !important;
+  margin: 0 0 var(--spacing-xs) 0 !important;
+}
+
+.card-sub {
+  font-size: var(--text-sm) !important;
+  color: var(--text-3) !important;
+  margin: 0 !important;
+  line-height: var(--leading-normal) !important;
+}
+
+/* ─── TABELAS (RANKING) ─── */
+.ranking {
+  background: var(--surface) !important;
+}
+
+.ranking th {
+  font-size: var(--text-xs) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.1em !important;
+  color: var(--text-3) !important;
+  padding: var(--spacing-lg) !important;
+  background: var(--surface-2) !important;
+  border-bottom: 2px solid var(--border-2) !important;
+  position: sticky !important;
+  top: 0 !important;
+}
+
+.ranking td {
+  padding: var(--spacing-lg) !important;
+  font-size: var(--text-base) !important;
+  border-bottom: 1px solid var(--border) !important;
+  color: var(--text) !important;
+  line-height: var(--leading-normal) !important;
+}
+
+.ranking tbody tr {
+  transition: background-color var(--transition-fast) !important;
+}
+
+.ranking tbody tr:hover td {
+  background: var(--surface-3) !important;
+}
+
+/* ─── RANK ITEMS (células de ranking) ─── */
+.rank-pos {
+  font-size: var(--text-sm) !important;
+  font-weight: 700 !important;
+  color: var(--text-3) !important;
+}
+
+.rank-uf {
+  font-size: var(--text-xs) !important;
+  font-weight: 700 !important;
+}
+
+.rank-nome {
+  font-size: var(--text-base) !important;
+  color: var(--text) !important;
+}
+
+.rank-valor {
+  font-size: var(--text-base) !important;
+  font-weight: 700 !important;
+  color: var(--text) !important;
+}
+
+/* ─── GRIDS ─── */
+.grid-2 {
+  gap: var(--spacing-xl) !important;
+  margin-bottom: var(--spacing-xl) !important;
+}
+
+@media (max-width: 1024px) {
+  .grid-2 {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ─── LEGENDA ─── */
+.legend-item {
+  font-size: var(--text-sm) !important;
+  color: var(--text-2) !important;
+  line-height: var(--leading-normal) !important;
+}
+
+/* ─── TOOLTIPS ─── */
+.tt {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-md) !important;
+  padding: var(--spacing-lg) !important;
+  font-size: var(--text-sm) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+.tt-label {
+  font-size: var(--text-xs) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.1em !important;
+  color: var(--text-3) !important;
+  margin-bottom: var(--spacing-sm) !important;
+}
+
+.tt-value {
+  font-size: var(--text-lg) !important;
+  font-weight: 700 !important;
+  color: var(--text) !important;
+}
+
+.tt-detail {
+  font-size: var(--text-sm) !important;
+  color: var(--text-2) !important;
+  margin-top: var(--spacing-sm) !important;
+  line-height: var(--leading-normal) !important;
+}
+
+/* ─── BOTÕES ─── */
+.btn-clear,
+.btn-exportar,
+.page-header-acoes button {
+  border-radius: var(--radius-md) !important;
+  padding: var(--spacing-sm) var(--spacing-md) !important;
+  font-family: var(--font-family) !important;
+  font-size: var(--text-sm) !important;
+  font-weight: 600 !important;
+  transition: all var(--transition-fast) !important;
+  cursor: pointer !important;
+}
+
+.btn-clear:hover,
+.btn-exportar:hover {
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+}
+
+/* ─── LOADING ─── */
+.loading {
+  gap: var(--spacing-lg) !important;
+}
+
+.spinner {
+  width: 40px !important;
+  height: 40px !important;
+  border: 3px solid var(--border) !important;
+  border-top-color: var(--accent) !important;
+}
+
+/* ─── EMPTY STATE ─── */
+.empty-state {
+  color: var(--text-3) !important;
+  font-size: var(--text-base) !important;
+  height: 200px !important;
+}
+
+/* ─── RESPONSIVO ─── */
+@media (max-width: 900px) {
+  .header-title,
+  .page-title {
+    font-size: var(--text-2xl) !important;
+  }
+
+  .header-sub,
+  .page-desc {
+    font-size: var(--text-sm) !important;
+  }
+
+  .filtros {
+    padding: var(--spacing-md) !important;
+    gap: var(--spacing-md) !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .header,
+  .page-header {
+    flex-direction: column;
+    gap: var(--spacing-lg) !important;
+    padding-bottom: var(--spacing-xl) !important;
+    margin-bottom: var(--spacing-lg) !important;
+  }
+
+  .header-right,
+  .page-header-right {
+    align-items: flex-start !important;
+  }
+
+  .header-title,
+  .page-title {
+    font-size: var(--text-2xl) !important;
+  }
+
+  .card {
+    padding: var(--spacing-md) !important;
+  }
+
+  .ranking th,
+  .ranking td {
+    padding: var(--spacing-md) !important;
+    font-size: var(--text-sm) !important;
+  }
+
+  .filtros {
+    flex-direction: column;
+    align-items: stretch !important;
+    padding: var(--spacing-md) !important;
+  }
+
+  .filtro-group,
+  .filtros select {
+    width: 100% !important;
+  }
+}

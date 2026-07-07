@@ -12,13 +12,26 @@ Etapas:
   4. Carrega no Supabase (PostgreSQL)
 """
 
-import pandas as pd
+import logging
 import os
-import json
+import sys
 from datetime import datetime
+
+import pandas as pd
 from dotenv import load_dotenv
 
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
+
 load_dotenv()
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    datefmt="%H:%M:%S",
+)
+log = logging.getLogger(__name__)
 
 SUPABASE_URL = os.getenv("SUPABASE_URL", "")
 SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_KEY", "")  # usar service_role key para insert
@@ -54,14 +67,14 @@ def _fetch_all(client, tabela: str, colunas: str) -> list:
 
 
 def carregar_transferencias() -> pd.DataFrame:
-    print("  Lendo fato_transferencias do Supabase...")
+    log.info("  Lendo fato_transferencias do Supabase...")
     client = _supabase_client()
     registros = _fetch_all(client, "fato_transferencias", "ano,sigla_uf,tipo_transferencia,valor_transferido")
     if not registros:
         raise RuntimeError("Tabela fato_transferencias vazia. Execute primeiro: python coleta/coletar_transferencias.py")
     df = pd.DataFrame(registros)
     df["valor_transferido"] = pd.to_numeric(df["valor_transferido"], errors="coerce").fillna(0)
-    print(f"  ✓ Transferências: {len(df):,} registros")
+    log.info("  Transferências: %d registros", len(df))
     return df
 
 
@@ -70,16 +83,16 @@ def carregar_populacao() -> pd.DataFrame:
     caminho = os.path.join(DATA_DIR, "populacao_estados.csv")
     if os.path.exists(caminho):
         df = pd.read_csv(caminho, encoding="utf-8")
-        print(f"  ✓ População: {len(df):,} registros (CSV local)")
+        log.info("  População: %d registros (CSV local)", len(df))
         return df
 
-    print("  Lendo dim_populacao do Supabase...")
+    log.info("  Lendo dim_populacao do Supabase...")
     client = _supabase_client()
     registros = _fetch_all(client, "dim_populacao", "sigla_uf,ano,populacao")
     if not registros:
-        raise RuntimeError("Sem dados de população. Execute primeiro: python coletar_populacao_ibge.py")
+        raise RuntimeError("Sem dados de população. Execute primeiro: python coleta/coletar_ibge.py")
     df = pd.DataFrame(registros)
-    print(f"  ✓ População: {len(df):,} registros (Supabase)")
+    log.info("  População: %d registros (Supabase)", len(df))
     return df
 
 
@@ -297,7 +310,7 @@ def salvar_csvs(dim_estado, dim_tempo, dim_tipo, fato, agregacoes):
     for nome, df in arquivos.items():
         caminho = os.path.join(SAIDA_DIR, nome)
         df.to_csv(caminho, index=False, encoding="utf-8")
-        print(f"  ✓ Salvo: {caminho} ({len(df):,} linhas)")
+        log.info("  Salvo: %s (%d linhas)", caminho, len(df))
 
 
 def carregar_supabase(tabela: str, df: pd.DataFrame, on_conflict: str = None):
@@ -306,7 +319,7 @@ def carregar_supabase(tabela: str, df: pd.DataFrame, on_conflict: str = None):
     Usa upsert para não duplicar dados em re-execuções.
     """
     if not SUPABASE_URL or not SUPABASE_KEY:
-        print(f"  ⚠ Supabase não configurado. Pulando carga de '{tabela}'.")
+        log.warning("Supabase não configurado. Pulando carga de '%s'.", tabela)
         return False
 
     try:
@@ -324,16 +337,16 @@ def carregar_supabase(tabela: str, df: pd.DataFrame, on_conflict: str = None):
                 req = client.table(tabela).upsert(lote, on_conflict=on_conflict)
             req.execute()
             total += len(lote)
-            print(f"\r  [{tabela}] {total}/{len(registros)} registros inseridos...", end="")
+            log.debug("[%s] %d/%d registros inseridos...", tabela, total, len(registros))
 
-        print(f"\r  ✓ {tabela}: {total:,} registros carregados no Supabase          ")
+        log.info("  %s: %d registros carregados no Supabase", tabela, total)
         return True
 
     except ImportError:
-        print("  ✗ Biblioteca supabase não instalada. Execute: pip install supabase")
+        log.error("Biblioteca supabase não instalada. Execute: pip install supabase")
         return False
     except Exception as e:
-        print(f"  ✗ Erro ao carregar {tabela}: {e}")
+        log.error("Erro ao carregar '%s': %s", tabela, e)
         return False
 
 
@@ -465,38 +478,38 @@ CREATE INDEX IF NOT EXISTS idx_agg_est_ano   ON agg_por_estado_ano (ano, sigla_u
 # ──────────────────────────────────────────────
 
 def main():
-    print("=" * 60)
-    print("  ETL - INTEGRAÇÃO E CARGA NO SUPABASE")
-    print("  TCC - Emmanuel Peralta - ULBRA Palmas")
-    print("=" * 60)
+    log.info("=" * 60)
+    log.info("  ETL - INTEGRAÇÃO E CARGA NO SUPABASE")
+    log.info("  TCC - Emmanuel Peralta - ULBRA Palmas")
+    log.info("=" * 60)
 
     # 1. Extrair
-    print("\n[1/5] Carregando dados brutos...")
+    log.info("[1/5] Carregando dados brutos...")
     df_transf = carregar_transferencias()
     df_pop = carregar_populacao()
 
     # 2. Construir dimensões
-    print("\n[2/5] Construindo dimensões do modelo estrela...")
+    log.info("[2/5] Construindo dimensões do modelo estrela...")
     dim_estado = construir_dim_estado(df_transf)
     dim_tempo = construir_dim_tempo(df_transf["ano"].unique().tolist())
     dim_tipo = construir_dim_tipo_transferencia(df_transf)
-    print(f"  ✓ dim_estado: {len(dim_estado)} estados")
-    print(f"  ✓ dim_tempo: {len(dim_tempo)} anos")
-    print(f"  ✓ dim_tipo: {len(dim_tipo)} tipos")
+    log.info("  dim_estado: %d estados", len(dim_estado))
+    log.info("  dim_tempo: %d anos", len(dim_tempo))
+    log.info("  dim_tipo: %d tipos", len(dim_tipo))
 
     # 3. Construir fato
-    print("\n[3/5] Construindo tabela fato (com per capita)...")
+    log.info("[3/5] Construindo tabela fato (com per capita)...")
     fato = construir_fato_transferencias(df_transf, df_pop, dim_estado, dim_tempo, dim_tipo)
-    print(f"  ✓ fato_transferencias: {len(fato):,} registros")
+    log.info("  fato_transferencias: %d registros", len(fato))
 
     # 4. Agregações
-    print("\n[4/5] Calculando agregações...")
+    log.info("[4/5] Calculando agregações...")
     agregacoes = construir_agregacoes(fato)
     for nome, df in agregacoes.items():
-        print(f"  ✓ {nome}: {len(df):,} registros")
+        log.info("  %s: %d registros", nome, len(df))
 
     # 5. Salvar
-    print("\n[5/5] Salvando arquivos e carregando no Supabase...")
+    log.info("[5/5] Salvando arquivos e carregando no Supabase...")
     salvar_csvs(dim_estado, dim_tempo, dim_tipo, fato, agregacoes)
 
     # Gerar SQL para criar tabelas no Supabase
@@ -504,13 +517,19 @@ def main():
 
     # Carregar no Supabase (se configurado)
     if SUPABASE_URL and SUPABASE_KEY:
-        print("\n  Carregando no Supabase...")
+        log.info("Carregando no Supabase...")
 
         # dim_estado já existe com capital/id_ibge — pular para não conflitar
-        print("  ℹ  dim_estado: já existe no Supabase, pulando.")
+        log.info("  dim_estado: já existe no Supabase, pulando.")
 
-        carregar_supabase("dim_tempo", dim_tempo)
-        carregar_supabase("dim_tipo_transferencia", dim_tipo)
+        # id_tempo/id_tipo são índices recalculados a cada execução (não são
+        # estáveis entre runs) — não enviamos para não colidir com a PK real do banco.
+        carregar_supabase("dim_tempo", dim_tempo.drop(columns=["id_tempo"]), on_conflict="ano")
+        carregar_supabase(
+            "dim_tipo_transferencia",
+            dim_tipo.drop(columns=["id_tipo"]),
+            on_conflict="tipo_transferencia",
+        )
 
         # fato_transferencias: atualizar apenas populacao e valor_per_capita
         fato_slim = fato[["sigla_uf", "ano", "tipo_transferencia",
@@ -524,17 +543,29 @@ def main():
             "agg_por_tipo_ano":    "ano,tipo_transferencia",
             "agg_ranking_estados": "ano,sigla_uf",
         }
+
+        # upsert nunca remove linha — se um tipo/estado deixar de existir entre
+        # uma execução e outra (ex.: filtro de destino mudou e um item antigo
+        # não aparece mais), a linha antiga fica pra sempre como "fantasma".
+        # Por isso limpamos cada tabela de agregação antes de recarregar.
+        from supabase import create_client
+        client = create_client(SUPABASE_URL, SUPABASE_KEY)
+        for nome in agregacoes:
+            tabela = f"agg_{nome}"
+            log.info("  Limpando %s antes de recarregar...", tabela)
+            client.table(tabela).delete().neq("id", 0).execute()
+
         for nome, df in agregacoes.items():
             tabela = f"agg_{nome}"
             carregar_supabase(tabela, df, on_conflict=on_conflict_agg.get(tabela))
     else:
-        print("\n  ℹ  Configure SUPABASE_URL e SUPABASE_SERVICE_KEY no .env para carregar no banco.")
+        log.warning("Configure SUPABASE_URL e SUPABASE_SERVICE_KEY no .env para carregar no banco.")
 
-    print(f"\n{'='*60}")
-    print("✓ ETL concluído com sucesso!")
-    print(f"  Arquivos em: {SAIDA_DIR}/")
-    print(f"  SQL para Supabase: {SAIDA_DIR}/criar_tabelas_supabase.sql")
-    print("=" * 60)
+    log.info("=" * 60)
+    log.info("ETL concluído com sucesso!")
+    log.info("  Arquivos em: %s/", SAIDA_DIR)
+    log.info("  SQL para Supabase: %s/criar_tabelas_supabase.sql", SAIDA_DIR)
+    log.info("=" * 60)
 
 
 if __name__ == "__main__":

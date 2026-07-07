@@ -1,5 +1,8 @@
 import GraficoRegioes from "../components/GraficoRegioes";
+import BotaoExportarCSV from "../components/BotaoExportarCSV";
 import PageHeader from "../components/PageHeader";
+import IndicadorFontePop from "../components/IndicadorFontePop";
+import { nomeMes } from "../utils/meses";
 
 const fmtBRL = (v) => {
   if (v >= 1e9) return `R$ ${(v / 1e9).toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} bi`;
@@ -21,7 +24,19 @@ const CORES = {
   "Centro-Oeste": "#C2410C",
 };
 
-export default function PaginaRegioes({ regioes, anoSel }) {
+const COLUNAS_EXPORT = [
+  { key: "regiao",           label: "Região" },
+  { key: "qtd_estados",      label: "Nº Estados" },
+  { key: "populacao",        label: "População" },
+  { key: "valor_total",      label: "Total Transferido (R$)" },
+  { key: "valor_per_capita", label: "Per Capita (R$)" },
+  { key: "pct",              label: "% do Total Nacional" },
+];
+
+export default function PaginaRegioes({ regioes, anoSel, mesSel, dadosNacionais }) {
+  const periodo = mesSel ? `${nomeMes(mesSel)}/${anoSel}` : anoSel;
+  // Todos os estados de um mesmo ano compartilham a mesma fonte de população.
+  const fontePop = dadosNacionais?.find((r) => r.fonte_pop)?.fonte_pop;
   const totalGeral = regioes.reduce((s, r) => s + (r.valor_total || 0), 0);
   const popGeral   = regioes.reduce((s, r) => s + (r.populacao  || 0), 0);
   const mediaPC    = popGeral > 0 ? totalGeral / popGeral : 0;
@@ -35,24 +50,36 @@ export default function PaginaRegioes({ regioes, anoSel }) {
     }))
     .sort((a, b) => b.valor_total - a.valor_total);
 
+  const dadosExport = regioesComPC.map((r) => ({
+    ...r,
+    pct: r.pct.toFixed(1) + "%",
+  }));
+
   return (
     <div className="page">
       <PageHeader
         eyebrow="Por Região"
         title="Transferências por Região"
         description="Comparativo regional do volume total transferido e valor per capita por habitante. Use o toggle Total / Per capita para alternar a visão."
+        acoes={
+          <BotaoExportarCSV
+            dados={dadosExport}
+            colunas={COLUNAS_EXPORT}
+            nomeArquivo={`regioes_${anoSel}.csv`}
+          />
+        }
       />
 
-      <GraficoRegioes regioes={regioes} anoSel={anoSel} height={420} />
+      <GraficoRegioes regioes={regioes} anoSel={anoSel} mesSel={mesSel} height={420} dadosNacionais={dadosNacionais} />
 
       {/* Tabela resumo por região */}
       <div className="card" style={{ marginTop: 16 }}>
         <div className="card-header">
-          <div className="card-title">Resumo por região · {anoSel}</div>
+          <div className="card-title">Resumo por região · {periodo}</div>
           <div className="card-sub">Média nacional per capita: {fmtPC(mediaPC)}</div>
         </div>
 
-        <table className="ranking">
+        <table className="ranking" aria-label={`Tabela de transferências por região em ${periodo}`}>
           <thead>
             <tr>
               <th>Região</th>
@@ -77,6 +104,7 @@ export default function PaginaRegioes({ regioes, anoSel }) {
                   </td>
                   <td style={{ textAlign: "right", color: "var(--text-2)", fontSize: 12 }}>
                     {r.populacao > 0 ? fmtPop(r.populacao) : "—"}
+                    <IndicadorFontePop fontePop={fontePop} />
                   </td>
                   <td style={{ textAlign: "right" }}>
                     <span className="rank-valor">{fmtBRL(r.valor_total)}</span>
